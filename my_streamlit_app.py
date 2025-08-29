@@ -32,11 +32,13 @@ st.set_page_config(page_title='Gaza Food Donation',page_icon='🙏')
 
 #Apply custom CSS
 with open(CSS_FILE) as f:
-    st.markdown(f'<style> [f.read()]</style>',unsafe_allow_html=True)
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 
 #Display header with personalized name
 PERSON_NAME=get_person_name()
-st.header(f'Donate Food to [PERSON_NAME]🤝', anchor=False)
+st.header(f"Donate Food to {PERSON_NAME} 🤝", anchor=False)
+
 
 #Display the Gaza donation
 gaza_donation=load_gaza_food_donation('file_path')
@@ -53,7 +55,8 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 #donation data file
-DATA_FILE=('donations.csv')
+DATA_FILE='donations.csv'
+donations_df=pd.read_csv(DATA_FILE)
 
 # Example donation data
 new_donation = {
@@ -61,12 +64,13 @@ new_donation = {
     "Amount": 20,
     "Message": "With love 💖",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+}
 
 #Load existing donations
 try:
-    donations.csv=pd.read_csv(DATA_FILE)
+    donations_df=pd.read_csv(DATA_FILE)
 except FileNotFoundError:
-    donations.csv=pd.DataFrame(columns=['Name','Amount','Message','Date'])
+    donations_df=pd.DataFrame(columns=['Name','Amount','Message','Date'])
 
 # Donation form
 with st.form("donation_form"):
@@ -82,7 +86,8 @@ if submitted:
     line_items=[{'price_data':{
     'currency':'usd',
     'product_data':{'name': f"Donation from {name or 'Anonymous'}"},
-                'unit_amount': int(amount * 100),  # Amount in cents
+    'unit_amount': int(amount *100),
+    # Amount in cents
             },
             'quantity': 1,
         }],
@@ -93,15 +98,15 @@ if submitted:
 
 if submitted:
     # Save the donation intent locally
-new_donation = {
+    new_donation = {
     "Name": name if name else "Anonymous",
     "Amount": amount,
     "Message": message,
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 }
 
-donations.csv = pd.concat([donations_df, pd.DataFrame([new_donation])], ignore_index=True)
-donations.csv to_csv(DATA_FILE, index=False)
+donations_df = pd.concat([donations_df, pd.DataFrame([new_donation])], ignore_index=True)
+donations_df.to_csv(DATA_FILE, index=False)
 
 # Redirect user to Stripe payment page
 st.markdown(f"[Click here to complete your donation]({session.url})", unsafe_allow_html=True)
