@@ -1,9 +1,2 @@
 streamlit==1.32.0
-pathlib
-json
-pandas
-os
-stripe
-dotenv
-datetime
-dotenv
+pillow
