@@ -53,7 +53,7 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 #donation data file
-DATA_FILE='donations.csv'
+DATA_FILE='(donations.csv')
 
 # Example donation data
 new_donation = {
