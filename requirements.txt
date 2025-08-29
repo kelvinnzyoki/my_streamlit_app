@@ -1,0 +1,9 @@
+streamlit
+pathlib
+json
+pandas
+os
+stripe
+dotenv
+datetime
+dotenv
