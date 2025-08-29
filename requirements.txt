@@ -1,3 +1,10 @@
 streamlit==1.32.0
 pillow
 stripe
+dotenv
+os
+json
+pathlib
+pandas
+datetime
+
