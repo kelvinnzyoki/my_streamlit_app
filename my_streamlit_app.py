@@ -53,7 +53,7 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 #donation data file
-DATA_FILE='(donations.csv')
+DATA_FILE=('donations.csv')
 
 # Example donation data
 new_donation = {
@@ -64,9 +64,9 @@ new_donation = {
 
 #Load existing donations
 try:
-    donations_df=pd.read_csv(DATA_FILE)
+    donations.csv=pd.read_csv(DATA_FILE)
 except FileNotFoundError:
-    donations_df=pd.DataFrame(columns=['Name','Amount','Message','Date'])
+    donations.csv=pd.DataFrame(columns=['Name','Amount','Message','Date'])
 
 # Donation form
 with st.form("donation_form"):
@@ -100,8 +100,8 @@ new_donation = {
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 }
 
-donations_df = pd.concat([donations_df, pd.DataFrame([new_donation])], ignore_index=True)
-donations_df.to_csv(DATA_FILE, index=False)
+donations.csv = pd.concat([donations_df, pd.DataFrame([new_donation])], ignore_index=True)
+donations.csv to_csv(DATA_FILE, index=False)
 
 # Redirect user to Stripe payment page
 st.markdown(f"[Click here to complete your donation]({session.url})", unsafe_allow_html=True)
