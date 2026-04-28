@@ -1,1 +1,33 @@
-
+{
+  "name": "flowfit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "axios": "^1.7.9",
+    "clsx": "^2.1.1",
+    "js-cookie": "^3.0.5",
+    "jwt-decode": "^4.0.0",
+    "recharts": "^2.13.3",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@svgr/webpack": "^8.1.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "15.1.0",
+    "typescript": "^5.7.2"
+  }
+}
