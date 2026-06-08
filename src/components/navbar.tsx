@@ -1,4 +1,31 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-export default function Navbar(){ const [light,setLight]=useState(false); useEffect(()=>{const saved=localStorage.getItem('flowfit-theme'); const isLight=saved==='light'; setLight(isLight); document.documentElement.classList.toggle('light-mode',isLight); document.documentElement.dataset.theme=isLight?'light':'dark';},[]); function toggle(){const next=!light; setLight(next); document.documentElement.classList.toggle('light-mode',next); document.documentElement.dataset.theme=next?'light':'dark'; localStorage.setItem('flowfit-theme',next?'light':'dark');} return <nav className="nav"><Link className="brand" href="/">Flow<span>Fit</span></Link><div className="nav-links"><Link href="/programs">Programs</Link><Link href="/workouts">Workouts</Link><Link href="/progress">Progress</Link><Link href="/subscription">Pricing</Link><Link href="/auth/login">Login</Link><Link className="btn btn-primary" href="/auth/register">Start Free</Link><button className="theme-toggle" onClick={toggle} aria-label="Toggle theme">{light?'🌙':'☀️'}</button></div></nav>}
+import { Menu, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
+
+const links = [
+  ['Home','/'], ['Workouts','/workouts'], ['Programs','/programs'], ['Progress','/progress'], ['Pricing','/subscription'], ['Blog','/blog']
+];
+
+export default function Navbar() {
+  const [open, setOpen] = useState(false);
+  return (
+    <nav className="nav">
+      <Link href="/" className="logo-wrap" aria-label="FlowFit home">
+        <span className="logo-mark">F</span>
+        <span className="logo-wordmark"><span className="logo-flow">Flow</span><span className="logo-fit">Fit</span></span>
+      </Link>
+      <ul className="nav-links">{links.map(([label, href]) => <li key={href}><Link href={href}>{label}</Link></li>)}</ul>
+      <div className="nav-right">
+        <NotificationBell />
+        <ThemeToggle />
+        <Link className="secondary-btn" href="/auth/login">Login</Link>
+        <Link className="primary-btn" href="/auth/register"><Sparkles size={15}/> Start</Link>
+        <button className="icon-btn mobile-nav" onClick={() => setOpen(!open)}><Menu size={18}/></button>
+      </div>
+      {open && <div className="notif-panel" style={{ top:70, right:16 }}>{links.map(([label, href]) => <Link key={href} onClick={() => setOpen(false)} className="side-link" href={href}>{label}</Link>)}</div>}
+    </nav>
+  );
+}

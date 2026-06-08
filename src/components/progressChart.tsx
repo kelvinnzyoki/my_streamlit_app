@@ -1,1 +1,4 @@
-export default function ProgressChart({ data }: { data: Array<{day:string;score:number}> }){ const max=Math.max(...data.map(d=>d.score),100); return <div className="card"><div className="section-head"><h3>Weekly Progress</h3></div><div className="chart">{data.map(d=><div key={d.day} style={{display:'grid',alignItems:'end',gap:8,flex:1,textAlign:'center'}}><div className="bar" style={{height:`${(d.score/max)*220}px`}} title={`${d.score}`}/><small className="muted">{d.day}</small></div>)}</div></div>}
+export default function ProgressChart({ data }: { data: number[] }) {
+  const max = Math.max(...data, 100);
+  return <div className="progress-bars">{data.map((value, index) => <div key={index} className="bar" style={{ height:`${Math.max(12, (value / max) * 100)}%` }}><span>{value}</span></div>)}</div>;
+}
