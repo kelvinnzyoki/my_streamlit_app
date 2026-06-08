@@ -1,2 +1,3 @@
-import Navbar from '@/components/navbar'; import Footer from '@/components/footer';
-export default function Cookies(){return <><Navbar/><main className="legal"><h1>Cookie Policy</h1><p>FlowFit uses cookies for secure login sessions, preference storage, analytics, and platform functionality.</p><h2>Essential cookies</h2><p>Authentication cookies keep users signed in and help protect accounts.</p><h2>Preference storage</h2><p>Theme preference is stored locally so dark and light mode remain consistent.</p></main><Footer/></>}
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
+export default function CookiesPage(){return <><Navbar/><main className="legal"><p className="eyebrow">Legal</p><h1>Cookie Policy</h1><p>FlowFit may use cookies for authentication sessions, preferences, and secure platform operation.</p><h2>Theme preference</h2><p>The dark/light theme preference is stored locally so the interface remembers your choice.</p><h2>Authentication</h2><p>Secure cookies may be used by the backend to maintain login sessions.</p></main><Footer/></>}
