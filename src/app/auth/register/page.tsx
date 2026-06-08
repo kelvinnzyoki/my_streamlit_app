@@ -1,3 +1,21 @@
 'use client';
-import Link from 'next/link'; import { useRouter } from 'next/navigation'; import { FormEvent, useState } from 'react'; import Navbar from '@/components/navbar'; import { register } from '@/lib/api';
-export default function Register(){ const router=useRouter(); const [error,setError]=useState(''); async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault(); const f=new FormData(e.currentTarget); try{await register({name:f.get('name'),email:f.get('email'),password:f.get('password'),goal:f.get('goal')}); router.push('/dashboard');}catch(err){setError(err instanceof Error?err.message:'Registration failed');}} return <><Navbar/><main className="legal"><h1>Create Account</h1><form className="form card" onSubmit={submit}><input className="input" name="name" placeholder="Full name" required/><input className="input" name="email" type="email" placeholder="Email" required/><input className="input" name="password" type="password" placeholder="Password" required/><select className="input" name="goal"><option>Lose weight</option><option>Build strength</option><option>Improve fitness</option></select>{error&&<p style={{color:'var(--red)'}}>{error}</p>}<button className="btn btn-primary">Create Account</button><p className="muted">Already registered? <Link className="gold" href="/auth/login">Login</Link></p></form></main></>}
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState, type FormEvent } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import ThemeToggle from '@/components/ThemeToggle';
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const { register } = useAuth();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setError(''); setLoading(true);
+    const f = new FormData(e.currentTarget);
+    try { await register({ name:String(f.get('name')), email:String(f.get('email')), password:String(f.get('password')) }); router.push('/dashboard'); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Registration failed'); }
+    finally { setLoading(false); }
+  }
+  return <main className="form-wrap"><div style={{ position:'fixed', top:20, right:20 }}><ThemeToggle/></div><form className="auth-card" onSubmit={submit}><p className="eyebrow">Join FlowFit</p><h1>Create Account</h1>{error && <div className="alert">{error}</div>}<div className="field"><label>Name</label><input name="name" required /></div><div className="field"><label>Email</label><input name="email" type="email" required /></div><div className="field"><label>Password</label><input name="password" type="password" required minLength={6} /></div><button className="primary-btn" style={{ width:'100%' }} disabled={loading}>{loading ? 'Creating...' : 'Create Account'}</button><p className="muted">Already registered? <Link href="/auth/login">Login</Link></p></form></main>;
+}
