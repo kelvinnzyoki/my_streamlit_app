@@ -1,2 +1,15 @@
-import DashboardShell from '@/components/DashboardShell'; import ProgressChart from '@/components/progressChart';
-export default function Progress(){const data=[{day:'Mon',score:44},{day:'Tue',score:52},{day:'Wed',score:67},{day:'Thu',score:71},{day:'Fri',score:86},{day:'Sat',score:80},{day:'Sun',score:95}];return <DashboardShell><p className="eyebrow">Analytics</p><h1>Progress</h1><p className="lead">Optimized React chart view instead of heavy DOM scripts.</p><div className="grid grid-3"><div className="card"><p className="muted">Weekly score</p><div className="stat">95</div></div><div className="card"><p className="muted">Consistency</p><div className="stat">87%</div></div><div className="card"><p className="muted">Trend</p><div className="stat">+18%</div></div></div><section className="section"><ProgressChart data={data}/></section></DashboardShell>}
+'use client';
+import DashboardShell from '@/components/DashboardShell';
+import ProgressChart from '@/components/progressChart';
+import { useProgress } from '@/hooks/useProgress';
+
+export default function ProgressPage() {
+  const { weekly, stats } = useProgress();
+  return (
+    <DashboardShell>
+      <section><p className="eyebrow">Analytics</p><h1 className="title">Progress Tracking</h1><p className="muted">Optimized lightweight charting to avoid the hanging graph issue from the original HTML.</p></section>
+      <section className="grid stats" style={{ marginTop:'2rem' }}>{stats.map((stat) => <article className="card" key={stat.label}><p className="muted">{stat.label}</p><div className="stat-value">{stat.value}</div><p className="muted">{stat.sub}</p></article>)}</section>
+      <section className="section"><article className="premium-card"><p className="eyebrow">Weekly Score</p><ProgressChart data={weekly}/></article></section>
+    </DashboardShell>
+  );
+}
