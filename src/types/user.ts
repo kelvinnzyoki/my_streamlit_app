@@ -1,1 +1,7 @@
-export type User = { id: string; name?: string; email: string; role?: 'USER' | 'ADMIN'; plan?: string; };
+export type User = {
+  id: string;
+  name?: string;
+  email: string;
+  role?: 'USER' | 'ADMIN';
+  plan?: string;
+};
