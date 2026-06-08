@@ -1,3 +1,53 @@
 'use client';
-import { useSearchParams } from 'next/navigation'; import DashboardShell from '@/components/DashboardShell'; import { workouts } from '@/lib/utils'; import { useState } from 'react';
-export default function Session(){const params=useSearchParams(); const item=workouts.find(w=>w.id===params.get('exercise'))||workouts[0]; const [done,setDone]=useState(false); return <DashboardShell><p className="eyebrow">Workout Session</p><h1>{item.title}</h1><p className="lead">{item.description}</p><div className="grid grid-2"><div className="card"><h3>Timer</h3><div className="stat">{item.duration}:00</div><p className="muted">Complete the session, then log your result.</p><button className="btn btn-primary" onClick={()=>setDone(true)}>{done?'Completed ✓':'Mark Complete'}</button></div><div className="card"><h3>Session Target</h3><p>Level: <span className="gold">{item.level}</span></p><p>Calories estimate: <span className="gold">{item.calories}</span></p></div></div></DashboardShell>}
+
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import DashboardShell from '@/components/DashboardShell';
+
+const workouts = [
+  { id: 'pushups', name: 'Push Ups', duration: '12 min' },
+  { id: 'squats', name: 'Squats', duration: '15 min' },
+  { id: 'lunges', name: 'Lunges', duration: '14 min' },
+  { id: 'jumping-jacks', name: 'Jumping Jacks', duration: '10 min' },
+];
+
+function WorkoutSessionContent() {
+  const params = useSearchParams();
+  const workoutId = params.get('id') || 'pushups';
+
+  const workout =
+    workouts.find((item) => item.id === workoutId) || workouts[0];
+
+  return (
+    <DashboardShell>
+      <section className="page-section">
+        <p className="eyebrow">Workout Session</p>
+        <h1>{workout.name}</h1>
+        <p className="muted">
+          Follow the session, complete your sets, and save your progress.
+        </p>
+
+        <div className="card-grid">
+          <article className="premium-card">
+            <h2>Today&apos;s Plan</h2>
+            <p>Duration: {workout.duration}</p>
+            <p>Focus on controlled reps, clean breathing, and full range.</p>
+          </article>
+
+          <article className="premium-card">
+            <h2>Session Controls</h2>
+            <button className="primary-btn">Start Session</button>
+          </article>
+        </div>
+      </section>
+    </DashboardShell>
+  );
+}
+
+export default function SessionPage() {
+  return (
+    <Suspense fallback={<div className="page-section">Loading session...</div>}>
+      <WorkoutSessionContent />
+    </Suspense>
+  );
+}
