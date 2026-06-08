@@ -9,10 +9,14 @@ import {
 } from 'react';
 import type { User } from '@/types/user';
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+
 type AuthContextValue = {
   user: User | null;
   isAuthenticated: boolean;
-  login: (user: User) => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (payload: Record<string, unknown>) => Promise<void>;
   logout: () => void;
 };
 
@@ -21,12 +25,51 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  const value = useMemo<AuthContextValue>(
+  async function login(email: string, password: string) {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Login failed');
+    }
+
+    setUser(data.user || data.data?.user || null);
+  }
+
+  async function register(payload: Record<string, unknown>) {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
+
+    setUser(data.user || data.data?.user || null);
+  }
+
+  function logout() {
+    setUser(null);
+  }
+
+  const value = useMemo(
     () => ({
       user,
       isAuthenticated: Boolean(user),
-      login: setUser,
-      logout: () => setUser(null),
+      login,
+      register,
+      logout,
     }),
     [user]
   );
