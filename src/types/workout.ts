@@ -6,10 +6,14 @@ export type Workout = {
   name: string;
   title?: string;
   description: string;
+
   image: string;
+  altImage?: string;
+
   category: string;
   level: WorkoutDifficulty;
   difficulty?: WorkoutDifficulty;
+
   duration: number;
   calories: number;
 
