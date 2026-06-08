@@ -1,14 +1,8 @@
 import DashboardShell from '@/components/DashboardShell';
 import ProgramCard from '@/components/programCard';
-import { programs } from '@/data/programs';
+import { getPrograms } from '@/lib/api';
 
-export default function ProgramsPage() {
-  return (
-    <DashboardShell>
-      <section>
-        <div className="page-head"><div><p className="eyebrow">Training Programs</p><h1 className="title">Programs</h1><p className="muted">Structured FlowFit programs rebuilt from the HTML concept into scalable React cards.</p></div></div>
-        <div className="grid grid-4">{programs.map((program) => <ProgramCard key={program.id} program={program}/>)}</div>
-      </section>
-    </DashboardShell>
-  );
+export default async function ProgramsPage() {
+  const programs = await getPrograms();
+  return <DashboardShell><section className="page-section"><p className="eyebrow">Programs</p><h1>Structured Training Plans</h1><div className="grid grid-3">{programs.map((p)=><ProgramCard key={p.id} program={p}/>)}</div></section></DashboardShell>;
 }
