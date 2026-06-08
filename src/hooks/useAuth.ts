@@ -1,2 +1,3 @@
 'use client';
-export { useAuthContext as useAuth } from '@/context/authContext';
+
+export { useAuth } from '@/context/authContext';
