@@ -226,3 +226,24 @@ export const FlowFitAPI = {
   subscription: getSubscription,
   dashboard: getDashboard,
 };
+
+
+export async function login(email: string, password: string) {
+  return AuthAPI.login(email, password);
+}
+
+export async function register(payload: Record<string, unknown>) {
+  return AuthAPI.register(payload);
+}
+
+export async function logout() {
+  return AuthAPI.logout();
+}
+
+export async function getCurrentUser() {
+  return AuthAPI.me();
+}
+
+export async function refreshAccessToken() {
+  return AuthAPI.refresh();
+}
