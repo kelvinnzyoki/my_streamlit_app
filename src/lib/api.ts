@@ -179,36 +179,3 @@ export function getSubscription() {
     features: ['Basic workouts', 'Progress tracking', 'Limited AI coach'],
   }, 'flowfit:subscription');
 }
-
-
-export const AuthAPI = {
-  async login(email: string, password: string) {
-    return apiRequest('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-  },
-
-  async register(payload: Record<string, unknown>) {
-    return apiRequest('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async me() {
-    return apiRequest('/auth/me');
-  },
-
-  async refresh() {
-    return apiRequest('/auth/refresh', {
-      method: 'POST',
-    });
-  },
-
-  async logout() {
-    return apiRequest('/auth/logout', {
-      method: 'POST',
-    });
-  },
-};
