@@ -2,14 +2,10 @@
 import DashboardShell from '@/components/DashboardShell';
 import ProgressChart from '@/components/progressChart';
 import { useProgress } from '@/hooks/useProgress';
+import { formatNumber } from '@/lib/utils';
 
 export default function ProgressPage() {
-  const { weekly, stats } = useProgress();
-  return (
-    <DashboardShell>
-      <section><p className="eyebrow">Analytics</p><h1 className="title">Progress Tracking</h1><p className="muted">Optimized lightweight charting to avoid the hanging graph issue from the original HTML.</p></section>
-      <section className="grid stats" style={{ marginTop:'2rem' }}>{stats.map((stat) => <article className="card" key={stat.label}><p className="muted">{stat.label}</p><div className="stat-value">{stat.value}</div><p className="muted">{stat.sub}</p></article>)}</section>
-      <section className="section"><article className="premium-card"><p className="eyebrow">Weekly Score</p><ProgressChart data={weekly}/></article></section>
-    </DashboardShell>
-  );
+  const { progress, loading } = useProgress();
+  const summary = progress?.summary || {};
+  return <DashboardShell><section className="page-section"><p className="eyebrow">Progress Analytics</p><h1>Your Performance Trend</h1>{loading ? <p className="muted">Loading progress...</p> : <><div className="grid grid-4"><div className="premium-card"><p className="muted">Workouts</p><div className="stat-value">{formatNumber(summary.workouts)}</div></div><div className="premium-card"><p className="muted">Calories</p><div className="stat-value">{formatNumber(summary.calories)}</div></div><div className="premium-card"><p className="muted">Streak</p><div className="stat-value">{formatNumber(summary.streak)}</div></div><div className="premium-card"><p className="muted">Completion</p><div className="stat-value">{formatNumber(summary.completion)}%</div></div></div><div className="premium-card" style={{ marginTop:'1.2rem' }}><h2>Weekly Trend</h2><ProgressChart values={progress?.weekly || []}/></div></>}</section></DashboardShell>;
 }
