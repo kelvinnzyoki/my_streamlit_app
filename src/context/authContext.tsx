@@ -1,63 +1,145 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getCurrentUser, login as apiLogin, logout as apiLogout, register as apiRegister, refreshAccessToken } from '@/lib/api';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+
+import {
+  getCurrentUser,
+  login as apiLogin,
+  logout as apiLogout,
+  register as apiRegister,
+  refreshAccessToken,
+} from '@/lib/api';
+
 import type { User } from '@/types/user';
 
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<User | null>;
-  register: (payload: Record<string, unknown>) => Promise<User | null>;
+
+  login: (email: string, password: string) => Promise<void>;
+
+  register: (payload: Record<string, unknown>) => Promise<void>;
+
   logout: () => Promise<void>;
+
+  refresh: () => Promise<void>;
+
+  isAuthenticated: boolean;
 };
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [user, setUser] = useState<User | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    async function boot() {
-      await refreshAccessToken();
-      const me = await getCurrentUser();
-      if (active) {
-        setUser(me);
-        setLoading(false);
+
+    async function bootstrap() {
+      try {
+        const result = await getCurrentUser();
+
+        if (active) {
+          setUser(result?.user ?? null);
+        }
+      } catch {
+        if (active) {
+          setUser(null);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
     }
-    boot().catch(() => active && setLoading(false));
-    return () => { active = false; };
+
+    bootstrap();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    user,
-    loading,
-    isAuthenticated: Boolean(user),
-    async login(email, password) {
-      const next = await apiLogin(email, password);
-      setUser(next || null);
-      return next || null;
-    },
-    async register(payload) {
-      const next = await apiRegister(payload);
-      setUser(next || null);
-      return next || null;
-    },
-    async logout() {
-      await apiLogout();
-      setUser(null);
-    },
-  }), [user, loading]);
+  async function login(
+    email: string,
+    password: string
+  ) {
+    const result = await apiLogin(email, password);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    setUser(result?.user ?? null);
+  }
+
+  async function register(
+    payload: Record<string, unknown>
+  ) {
+    const result = await apiRegister(payload);
+
+    setUser(result?.user ?? null);
+  }
+
+  async function logout() {
+    try {
+      await apiLogout();
+    } finally {
+      setUser(null);
+    }
+  }
+
+  async function refresh() {
+    try {
+      const result = await refreshAccessToken();
+
+      if (result?.user) {
+        setUser(result.user);
+      }
+    } catch {
+      setUser(null);
+    }
+  }
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      loading,
+
+      login,
+      register,
+      logout,
+      refresh,
+
+      isAuthenticated: !!user,
+    }),
+    [user, loading]
+  );
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export function useAuthContext() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuthContext must be used inside AuthProvider');
-  return ctx;
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      'useAuth must be used inside AuthProvider'
+    );
+  }
+
+  return context;
 }
