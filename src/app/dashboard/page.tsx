@@ -1,3 +1,19 @@
-import DashboardShell from '@/components/DashboardShell'; import ProgressChart from '@/components/progressChart';
-const stats=[['Workout streak','12 days'],['Calories','4,280'],['Completed','36'],['Readiness','86%']];
-export default function Dashboard(){return <DashboardShell><p className="eyebrow">FlowFit Elite</p><h1>Dashboard</h1><p className="lead">Your training command center.</p><div className="grid grid-4">{stats.map(([k,v])=><div className="card" key={k}><p className="muted">{k}</p><div className="stat">{v}</div></div>)}</div><div className="section"><ProgressChart data={[{day:'Mon',score:42},{day:'Tue',score:58},{day:'Wed',score:72},{day:'Thu',score:64},{day:'Fri',score:89},{day:'Sat',score:93},{day:'Sun',score:96}]}/></div></DashboardShell>}
+import { Brain, CalendarCheck, Flame, Gauge, Trophy, type LucideIcon } from 'lucide-react';
+import DashboardShell from '@/components/DashboardShell';
+import ProgressChart from '@/components/progressChart';
+
+const stats: Array<[string, string, string, LucideIcon]> = [
+  ['Today Score','92%','Strong readiness',Gauge], ['Calories','640','burned this week',Flame], ['Streak','12','days active',CalendarCheck], ['Rank','Top 8%','FlowFit members',Trophy]
+];
+
+export default function DashboardPage() {
+  return (
+    <DashboardShell>
+      <section className="grid stats">{stats.map(([label,value,sub,Icon]) => <article className="card" key={label}><Icon size={22} className="gold"/><p className="muted">{label}</p><div className="stat-value">{value}</div><p className="muted">{sub}</p></article>)}</section>
+      <section className="section grid grid-2">
+        <article className="premium-card"><p className="eyebrow">Weekly Training Load</p><ProgressChart data={[45,58,62,71,68,86,93]}/></article>
+        <article className="premium-card"><Brain className="gold"/><h2>AI Coach Summary</h2><p className="muted">Your consistency is improving. Keep today&apos;s session moderate, then push intensity tomorrow with jump squats and mountain climbers.</p><button className="primary-btn">Open AI Coach</button></article>
+      </section>
+    </DashboardShell>
+  );
+}
