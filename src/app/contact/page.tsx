@@ -1,2 +1,3 @@
-import Navbar from '@/components/navbar'; import Footer from '@/components/footer';
-export default function Contact(){return <><Navbar/><main className="legal"><h1>Contact Us</h1><div className="grid"><div className="card"><h2>Email</h2><p><a href="mailto:tam&cc@cctamcc.site">tam&cc@cctamcc.site</a></p></div><div className="card"><h2>Phone</h2><p>+254748500065</p></div><div className="card"><h2>Location</h2><p>Nairobi, Kenya</p></div></div></main><Footer/></>}
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
+export default function ContactPage(){return <><Navbar/><main className="legal"><p className="eyebrow">Contact</p><h1>Talk to FlowFit</h1><div className="grid"><article className="premium-card"><h2>Support</h2><p className="muted">Email: <a className="gold" href="mailto:tam@cctamcc.site">tam@cctamcc.site</a></p></article><article className="premium-card"><h2>Feedback</h2><p className="muted">Send feature requests, bug reports, and improvement ideas from your dashboard feedback panel.</p></article></div></main><Footer/></>}
