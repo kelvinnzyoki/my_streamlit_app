@@ -1,5 +1,7 @@
 import DashboardShell from '@/components/DashboardShell';
+import { getProfile } from '@/lib/api';
 
-export default function ProfilePage() {
-  return <DashboardShell><section className="grid grid-2"><article className="premium-card"><p className="eyebrow">Profile</p><h1 className="title">Your FlowFit Account</h1><div className="form"><input className="input" defaultValue="FlowFit User"/><input className="input" defaultValue="user@example.com"/><select className="input" defaultValue="weight-loss"><option value="weight-loss">Weight Loss</option><option value="muscle-tone">Muscle Tone</option><option value="fitness">General Fitness</option></select><button className="primary-btn">Save Profile</button></div></article><article className="premium-card"><p className="eyebrow">Health Snapshot</p><div className="grid"><div><p className="muted">BMI</p><div className="stat-value">23.4</div></div><div><p className="muted">BMR</p><div className="stat-value">1,760</div></div><div><p className="muted">TDEE</p><div className="stat-value">2,420</div></div></div></article></section></DashboardShell>;
+export default async function ProfilePage() {
+  const profile = await getProfile();
+  return <DashboardShell><section className="page-section"><p className="eyebrow">Profile</p><h1>Account & Fitness Identity</h1><div className="premium-card"><div className="brand-mark" style={{ width:84,height:84,fontSize:30 }}>{profile?.name?.[0] || profile?.email?.[0] || 'F'}</div><h2>{profile?.name || profile?.fullName || 'FlowFit User'}</h2><p className="muted">{profile?.email || 'Sign in to sync your profile from the FlowFit server.'}</p><div className="pill-row"><span className="pill">{profile?.role || 'USER'}</span><span className="pill">{profile?.plan || 'Free Plan'}</span></div></div></section></DashboardShell>;
 }
