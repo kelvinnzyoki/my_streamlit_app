@@ -1,11 +1,7 @@
 import DashboardShell from '@/components/DashboardShell';
+import { getSubscription } from '@/lib/api';
 
-const plans = [
-  ['Free','KES 0','Basic workout access, manual tracking, starter programs'],
-  ['Pro','KES 499/mo','AI coach, advanced analytics, full programs, notifications'],
-  ['Elite','KES 999/mo','Diet planning, priority features, deeper progress insights']
-];
-
-export default function SubscriptionPage() {
-  return <DashboardShell><section><p className="eyebrow">Membership</p><h1 className="title">Subscription</h1><div className="grid grid-3">{plans.map(([name, price, desc], i) => <article className="premium-card" key={name} style={{ borderColor:i===1?'var(--Au)':'var(--b1)' }}><p className="eyebrow">{name}</p><h2>{price}</h2><p className="muted">{desc}</p><button className={i===1?'primary-btn':'secondary-btn'}>{i===0?'Current Plan':'Choose Plan'}</button></article>)}</div></section></DashboardShell>;
+export default async function SubscriptionPage() {
+  const sub: any = await getSubscription();
+  return <DashboardShell><section className="page-section"><p className="eyebrow">Subscription</p><h1>Manage Your FlowFit Plan</h1><div className="grid grid-2"><article className="premium-card"><p className="eyebrow">Current Plan</p><h2>{sub.plan}</h2><p className="muted">Status: {sub.status}</p><div className="metric-row"><span>{sub.renewalDate ? `Renews ${sub.renewalDate}` : 'No active renewal'}</span></div></article><article className="premium-card"><h2>Included Features</h2>{(sub.features || []).map((f:string)=><div className="mini-link" key={f}>{f}</div>)}<button className="primary-btn">Upgrade Plan</button></article></div></section></DashboardShell>;
 }
