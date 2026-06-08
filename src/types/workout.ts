@@ -9,7 +9,7 @@ export type Workout = {
   image: string;
   category: string;
   level: WorkoutDifficulty;
-  difficulty: WorkoutDifficulty;
+  difficulty?: WorkoutDifficulty;
   duration: number;
   calories: number;
 
