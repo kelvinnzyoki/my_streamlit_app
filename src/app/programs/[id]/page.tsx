@@ -1,111 +1,69 @@
-'use client';
-
-import { Suspense, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import DashboardShell from '@/components/DashboardShell';
+import { getProgram, programs } from '@/data/programs';
 import { getWorkout } from '@/data/workouts';
 import { imageUrl } from '@/lib/utils';
 
-function SessionContent() {
-  const params = useSearchParams();
+export function generateStaticParams() {
+  return programs.map((program) => ({
+    id: program.id,
+  }));
+}
 
-  const workoutId = params.get('id') ?? 'pushups';
-  const workout = getWorkout(workoutId);
+export default async function ProgramDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const program = getProgram(id);
 
-  const [done, setDone] = useState(false);
-
-  if (!workout) {
-    return (
-      <DashboardShell>
-        <section className="page-section">
-          <p className="eyebrow">Workout Not Found</p>
-          <h1>Invalid Workout</h1>
-          <p className="muted">
-            The workout you requested does not exist.
-          </p>
-        </section>
-      </DashboardShell>
-    );
+  if (!program) {
+    notFound();
   }
+
+  const programWorkouts = program.workouts
+    .map(getWorkout)
+    .filter(Boolean);
 
   return (
     <DashboardShell>
-      <section className="page-section">
-        <div className="premium-card">
+      <section className="grid grid-2" style={{ alignItems: 'start' }}>
+        <article className="premium-card">
           <img
-            src={imageUrl(workout.image)}
-            alt={workout.name}
+            src={imageUrl(program.image)}
+            alt={program.title}
             className="hero-img"
           />
 
-          <p className="eyebrow">{workout.category}</p>
-
-          <h1>{workout.name}</h1>
-
-          <p className="muted">
-            Complete the session and track your progress.
-          </p>
+          <p className="eyebrow">{program.level}</p>
+          <h1>{program.title}</h1>
+          <p className="muted">{program.description}</p>
 
           <div className="metric-row">
-            <span>{workout.duration} min</span>
-            <span>{workout.calories} kcal</span>
-            <span>{workout.difficulty}</span>
+            <span>{program.duration}</span>
+            <span>{program.workouts.length} workouts</span>
           </div>
+        </article>
 
-          <div
-            style={{
-              marginTop: '1.5rem',
-              display: 'flex',
-              gap: '1rem',
-              flexWrap: 'wrap',
-            }}
-          >
-            <button
-              className="primary-btn"
-              onClick={() => setDone(true)}
-            >
-              Mark Complete
-            </button>
+        <article className="premium-card">
+          <h2>Program Workouts</h2>
 
-            <button
-              className="secondary-btn"
-              onClick={() => setDone(false)}
-            >
-              Reset
-            </button>
+          <div className="stack">
+            {programWorkouts.map((workout) => (
+              <Link
+                key={workout!.id}
+                href={`/workouts/session?id=${workout!.id}`}
+                className="mini-link"
+              >
+                <span>{workout!.name}</span>
+                <small>{workout!.duration} min</small>
+              </Link>
+            ))}
           </div>
-
-          {done && (
-            <div
-              style={{
-                marginTop: '1rem',
-                padding: '1rem',
-                borderRadius: '12px',
-                background: 'rgba(59,191,138,0.12)',
-                border: '1px solid rgba(59,191,138,0.25)',
-              }}
-            >
-              ✅ Workout completed successfully.
-            </div>
-          )}
-        </div>
+        </article>
       </section>
     </DashboardShell>
-  );
-}
-
-export default function WorkoutSessionPage() {
-  return (
-    <Suspense
-      fallback={
-        <DashboardShell>
-          <section className="page-section">
-            <h2>Loading workout...</h2>
-          </section>
-        </DashboardShell>
-      }
-    >
-      <SessionContent />
-    </Suspense>
   );
 }
