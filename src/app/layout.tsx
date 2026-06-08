@@ -3,9 +3,8 @@ import './globals.css';
 import { AuthProvider } from '@/context/authContext';
 
 export const metadata: Metadata = {
-  title: 'FlowFit — Home Workouts Powered by AI',
-  description: 'Premium home workout platform with AI coaching, analytics, progress tracking, and no-equipment programs.',
-  icons: { icon: '/icons/fit.svg' }
+  title: 'FlowFit',
+  description: 'AI-powered home workouts, analytics, progress tracking, and programs.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
