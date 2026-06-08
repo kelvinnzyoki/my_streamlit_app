@@ -1,21 +1,14 @@
-// src/lib/utils.ts
-export function cn(...classes: (string | undefined | false | null)[]): string {
-  return classes.filter(Boolean).join(' ');
-}
-
-export function timeAgo(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  const days = Math.floor(seconds / 86400);
-  return days === 1 ? 'yesterday' : `${days}d ago`;
-}
-
-export function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m ? `${h}h ${m}m` : `${h}h`;
-}
+export function cn(...classes: Array<string | false | null | undefined>) { return classes.filter(Boolean).join(' '); }
+export function formatDuration(minutes: number) { return `${minutes} min`; }
+export const workouts = [
+ {id:'jumping-jacks',title:'Jumping Jacks',category:'Cardio',level:'Beginner',duration:12,calories:90,image:'/images/exercises/jumpingjacks.webp',description:'Full-body cardio starter for warmups and fat burning.'},
+ {id:'lunges',title:'Lunges',category:'Strength',level:'Intermediate',duration:18,calories:120,image:'/images/exercises/lunges.webp',description:'Lower-body strength and balance training.'},
+ {id:'child-pose',title:'Child Pose',category:'Recovery',level:'Beginner',duration:8,calories:25,image:'/images/exercises/childpose.webp',description:'Recovery stretch for hips, spine, and breath control.'},
+ {id:'squats',title:'Bodyweight Squats',category:'Strength',level:'Beginner',duration:15,calories:110,description:'No-equipment lower body power builder.'},
+];
+export const programs = [
+ {id:'starter',title:'Home Starter Reset',level:'Beginner',weeks:4,focus:'Consistency',description:'Build your routine with simple no-equipment workouts.',featured:true},
+ {id:'fat-burn',title:'Fat Burn Engine',level:'Intermediate',weeks:6,focus:'Cardio + Core',description:'High-energy sessions, recovery checks, and progress goals.',featured:true},
+ {id:'strength',title:'Lean Strength Builder',level:'Intermediate',weeks:8,focus:'Strength',description:'Progressive bodyweight training for stronger muscles.'},
+ {id:'mobility',title:'Mobility & Recovery',level:'All Levels',weeks:3,focus:'Flexibility',description:'Stretching, breathing, and joint-friendly movement.'},
+];
