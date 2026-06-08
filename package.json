@@ -1,4 +1,7 @@
 {
+  "name": "flowfit-next",
+  "version": "2.0.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -6,18 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "next": "latest",
+    "next": "16.2.7",
     "react": "latest",
     "react-dom": "latest",
     "lucide-react": "latest",
     "recharts": "latest"
   },
   "devDependencies": {
-    "typescript": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
     "eslint": "latest",
-    "eslint-config-next": "latest"
+    "eslint-config-next": "latest",
+    "typescript": "latest"
   }
 }
