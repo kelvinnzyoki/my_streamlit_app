@@ -1,4 +1,4 @@
-export type WorkoutDifficulty = 'Beginner' | 'Intermediate' | 'Advanced';
+export type WorkoutLevel = 'Beginner' | 'Intermediate' | 'Advanced' | string;
 
 export type Workout = {
   id: string;
@@ -6,17 +6,13 @@ export type Workout = {
   name: string;
   title?: string;
   description: string;
-
   image: string;
   altImage?: string;
-
   category: string;
-  level: WorkoutDifficulty;
-  difficulty?: WorkoutDifficulty;
-
+  level: WorkoutLevel;
+  difficulty?: WorkoutLevel;
   duration: number;
   calories: number;
-
   muscles?: string[];
   instructions?: string[];
   benefits?: string[];

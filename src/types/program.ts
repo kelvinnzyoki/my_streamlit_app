@@ -1,11 +1,12 @@
 export type Program = {
   id: string;
+  slug?: string;
   title: string;
-  slug: string;
-  duration: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  focus: string;
-  image: string;
+  name?: string;
   description: string;
+  level: string;
+  focus?: string;
+  duration: string;
+  image: string;
   workouts: string[];
 };
