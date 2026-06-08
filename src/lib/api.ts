@@ -34,3 +34,23 @@ export const NotificationAPI = {
   list: () => apiRequest<any>('/notifications?limit=30'),
   markAllRead: () => apiRequest<any>('/notifications/read-all', { method: 'PATCH' })
 };
+
+export async function register(payload: Record<string, unknown>) {
+  return apiRequest('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function login(email: string, password: string) {
+  return apiRequest('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function logout() {
+  return apiRequest('/auth/logout', {
+    method: 'POST',
+  });
+}
