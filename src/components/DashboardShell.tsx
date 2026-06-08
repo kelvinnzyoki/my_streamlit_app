@@ -1,0 +1,3 @@
+import Link from 'next/link';
+const links=[['/dashboard','Overview'],['/programs','Programs'],['/workouts','Workouts'],['/progress','Progress'],['/profile','Profile'],['/subscription','Subscription'],['/admin','Admin']];
+export default function DashboardShell({children}:{children:React.ReactNode}){return <div className="dashboard-shell"><aside className="sidebar"><Link href="/" className="brand">Flow<span>Fit</span></Link><div style={{height:24}}/>{links.map(([href,label])=><Link key={href} href={href} className="side-link">{label}</Link>)}</aside><main className="main">{children}</main></div>}
