@@ -1,16 +1,24 @@
 'use client';
-import { useMemo, useState } from 'react';
-import { workouts } from '@/data/workouts';
+import { useEffect, useMemo, useState } from 'react';
+import { getWorkouts } from '@/lib/api';
+import type { Workout } from '@/types/workout';
 
 export function useWorkouts() {
+  const [items, setItems] = useState<Workout[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
+  const [loading, setLoading] = useState(true);
 
-  const filtered = useMemo(() => workouts.filter((item) => {
+  useEffect(() => {
+    getWorkouts().then(setItems).finally(() => setLoading(false));
+  }, []);
+
+  const categories = useMemo(() => ['All', ...Array.from(new Set(items.map((item) => item.category)))], [items]);
+  const workouts = useMemo(() => items.filter((item) => {
     const matchesCategory = category === 'All' || item.category === category;
-    const search = `${item.name} ${item.category} ${item.level} ${item.description}`.toLowerCase();
-    return matchesCategory && search.includes(query.toLowerCase());
-  }), [query, category]);
+    const matchesQuery = [item.name, item.description, item.category].join(' ').toLowerCase().includes(query.toLowerCase());
+    return matchesCategory && matchesQuery;
+  }), [items, category, query]);
 
-  return { workouts: filtered, query, setQuery, category, setCategory };
+  return { workouts, categories, query, setQuery, category, setCategory, loading };
 }
