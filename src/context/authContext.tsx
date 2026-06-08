@@ -1,88 +1,61 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { AuthAPI } from '@/lib/api';
+import { getStoredUser, storeUser } from '@/lib/auth';
 import type { User } from '@/types/user';
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
 type AuthContextValue = {
   user: User | null;
+  loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (payload: Record<string, unknown>) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function extractUser(data: any): User | null {
+  return data?.user || data?.data?.user || data?.data || null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setUser(getStoredUser());
+    setLoading(false);
+  }, []);
 
   async function login(email: string, password: string) {
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || 'Login failed');
-    }
-
-    setUser(data.user || data.data?.user || null);
+    const data = await AuthAPI.login(email, password);
+    const nextUser = extractUser(data);
+    setUser(nextUser);
+    storeUser(nextUser);
   }
 
   async function register(payload: Record<string, unknown>) {
-    const res = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || 'Registration failed');
-    }
-
-    setUser(data.user || data.data?.user || null);
+    const data = await AuthAPI.register(payload);
+    const nextUser = extractUser(data);
+    setUser(nextUser);
+    storeUser(nextUser);
   }
 
-  function logout() {
+  async function logout() {
+    try { await AuthAPI.logout(); } catch { /* ignore network logout failures */ }
     setUser(null);
+    storeUser(null);
   }
 
-  const value = useMemo(
-    () => ({
-      user,
-      isAuthenticated: Boolean(user),
-      login,
-      register,
-      logout,
-    }),
-    [user]
-  );
+  const value = useMemo<AuthContextValue>(() => ({ user, loading, isAuthenticated: Boolean(user), login, register, logout }), [user, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuthContext() {
   const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuthContext must be used inside AuthProvider');
-  }
-
+  if (!context) throw new Error('useAuthContext must be used inside AuthProvider');
   return context;
 }
