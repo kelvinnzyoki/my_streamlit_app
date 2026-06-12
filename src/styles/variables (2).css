@@ -1,0 +1,124 @@
+/* ═══════════════════════════════════════════════════════
+   FLOWFIT DESIGN TOKENS — variables.css
+   @imported by globals.css
+═══════════════════════════════════════════════════════ */
+:root,
+[data-theme="dark"] {
+  --ink:          #07060c;
+  --ink-1:        #0c0b12;
+  --ink-2:        #111019;
+  --g-card:       linear-gradient(145deg,rgba(20,18,32,0.95),rgba(14,13,22,0.95));
+  --surface:      rgba(15,14,24,0.88);
+  --surface-deep: rgba(3,3,3,0.92);
+  --surface-2:    rgba(20,18,32,0.72);
+
+  --Au:           #C9A84C;
+  --Au-hi:        #E8C96A;
+  --Au-lo:        #8E6E28;
+  --Au-mist:      rgba(212,175,55,0.08);
+  --Au-04:        rgba(212,175,55,0.04);
+  --Au-06:        rgba(212,175,55,0.06);
+  --Au-10:        rgba(212,175,55,0.10);
+  --Au-12:        rgba(212,175,55,0.12);
+  --Au-14:        rgba(212,175,55,0.14);
+  --Au-20:        rgba(212,175,55,0.20);
+  --Au-25:        rgba(212,175,55,0.25);
+  --Au-30:        rgba(212,175,55,0.30);
+  --Au-35:        rgba(212,175,55,0.35);
+  --Au-40:        rgba(212,175,55,0.40);
+  --Au-50:        rgba(212,175,55,0.50);
+  --Au-glow:      rgba(212,175,55,0.18);
+  --Au-rim:       rgba(212,175,55,0.22);
+  --g-Au:         linear-gradient(135deg,#E8C96A 0%,#C9A84C 50%,#8E6E28 100%);
+  --g-Au2:        linear-gradient(180deg,#E8C96A 0%,#C9A84C 100%);
+
+  --sage:         #3BBF8A;
+  --sage-dim:     rgba(59,191,138,0.12);
+  --sage-15:      rgba(59,191,138,0.15);
+  --sage-20:      rgba(59,191,138,0.20);
+  --sage-25:      rgba(59,191,138,0.25);
+  --sage-30:      rgba(59,191,138,0.30);
+  --sky:          #5B9CF6;
+  --sky-dim:      rgba(0,242,254,0.08);
+  --coral:        #E07B54;
+  --red:          #E05454;
+  --red-10:       rgba(224,84,84,0.10);
+  --red-20:       rgba(224,84,84,0.20);
+  --red-30:       rgba(224,84,84,0.30);
+
+  --t1:           #F0EBE0;
+  --t2:           #8A8590;
+  --t3:           #44404A;
+  --t4:           #C4BFCA;
+
+  --b1:           rgba(212,175,55,0.14);
+  --b2:           rgba(212,175,55,0.26);
+  --b3:           rgba(240,235,228,0.05);
+  --b4:           rgba(240,235,228,0.09);
+
+  --overlay-30:   rgba(0,0,0,0.30);
+  --overlay-40:   rgba(0,0,0,0.40);
+  --overlay-50:   rgba(0,0,0,0.50);
+  --overlay-60:   rgba(0,0,0,0.60);
+  --white-03:     rgba(255,255,255,0.03);
+  --white-05:     rgba(255,255,255,0.05);
+  --white-08:     rgba(255,255,255,0.08);
+  --white-10:     rgba(255,255,255,0.10);
+  --white-12:     rgba(255,255,255,0.12);
+  --white-15:     rgba(255,255,255,0.15);
+  --white-20:     rgba(255,255,255,0.20);
+
+  --accent:       var(--Au);
+  --success:      var(--sage);
+  --danger:       var(--red);
+  --warning:      var(--coral);
+
+  --f-display:    'Josefin Sans', sans-serif;
+  --f-mono:       'JetBrains Mono', monospace;
+
+  --sidebar-w:    270px;
+  --col-max:      1340px;
+  --r-card:       16px;
+  --r-sm:         10px;
+  --r-pill:       9999px;
+  --ease:         cubic-bezier(0.16,1,0.3,1);
+  --shadow-card:  0 10px 40px rgba(0,0,0,0.6);
+  --shadow-gold:  0 0 30px rgba(212,175,55,0.15);
+  --bg-image:     url('/images/Untitled (1).webp');
+  --card-radius:  clamp(18px,2vw,28px);
+  --shadow:       0 18px 60px rgba(0,0,0,0.48);
+  --page-pad:     clamp(1rem,3vw,2rem);
+}
+
+html.light-mode,
+[data-theme="light"] {
+  --ink:          #fafafa;
+  --ink-1:        #ffffff;
+  --ink-2:        #f5f5f5;
+  --g-card:       linear-gradient(145deg,#ffffff,#fafafa);
+  --surface:      rgba(255,255,255,0.98);
+  --surface-deep: rgba(250,250,250,0.99);
+  --t1:           #0a0a0a;
+  --t2:           #404040;
+  --t3:           #737373;
+  --t4:           #262626;
+  --b1:           rgba(0,0,0,0.08);
+  --b2:           rgba(0,0,0,0.12);
+  --b3:           rgba(0,0,0,0.06);
+  --b4:           rgba(0,0,0,0.10);
+  --Au:           #B8860B;
+  --Au-hi:        #D4AF37;
+  --Au-lo:        #8B6914;
+  --Au-10:        rgba(0,0,0,0.05);
+  --Au-14:        rgba(0,0,0,0.07);
+  --Au-20:        rgba(0,0,0,0.09);
+  --Au-30:        rgba(184,134,11,0.12);
+  --white-03:     rgba(0,0,0,0.03);
+  --white-05:     rgba(0,0,0,0.05);
+  --white-08:     rgba(0,0,0,0.08);
+  --white-10:     rgba(0,0,0,0.10);
+  --white-12:     rgba(0,0,0,0.12);
+  --shadow:       0 18px 55px rgba(0,0,0,0.14);
+  --bg-image:     url('/images/fit1 (1).webp');
+  --g-Au:         linear-gradient(135deg,#C9A84C 0%,#9A7230 50%,#6B4F1F 100%);
+}
