@@ -43,7 +43,7 @@ export default function DashboardPage() {
       .then(([d, p, w]) => {
         setDashboard(d);
         setProgress(p);
-        setFeatured(w.slice(0, 2));
+        setFeatured(Array.isArray(w) ? w.slice(0, 2) : []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -53,10 +53,10 @@ export default function DashboardPage() {
   const weekly: number[] = progress?.weekly || dashboard?.weekly || [];
 
   const statCards = [
-    { label: 'Streak', value: stats.streak ?? stats.totalStreak ?? 0, unit: 'days', Icon: Trophy, color: 'var(--Au-hi)' },
-    { label: 'Workouts Done', value: stats.completedWorkouts ?? stats.totalWorkouts ?? 0, unit: 'sessions', Icon: Dumbbell, color: 'var(--sage)' },
-    { label: 'Total Minutes', value: stats.totalMinutes ?? stats.minutes ?? 0, unit: 'min', Icon: Clock, color: 'var(--sky)' },
-    { label: 'Calories Burned', value: stats.totalCalories ?? stats.calories ?? 0, unit: 'kcal', Icon: Flame, color: 'var(--red)' },
+    { label: 'Streak', value: stats.streak ?? stats.totalStreak ?? 0, unit: 'days', Icon: Trophy, tone: 'gold' },
+    { label: 'Workouts Done', value: stats.completedWorkouts ?? stats.totalWorkouts ?? 0, unit: 'sessions', Icon: Dumbbell, tone: 'sage' },
+    { label: 'Total Minutes', value: stats.totalMinutes ?? stats.minutes ?? 0, unit: 'min', Icon: Clock, tone: 'sky' },
+    { label: 'Calories Burned', value: stats.totalCalories ?? stats.calories ?? 0, unit: 'kcal', Icon: Flame, tone: 'red' },
   ];
 
   return (
@@ -74,53 +74,53 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-4" style={{ marginBottom: '1.5rem' }}>
-          {statCards.map(({ label, value, unit, Icon, color }) => (
-            <div key={label} className="stat-card">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+        <div className="grid grid-4 dashboard-stat-grid">
+          {statCards.map(({ label, value, unit, Icon, tone }) => (
+            <div key={label} className={`stat-card dashboard-stat-card stat-tone-${tone}`}>
+              <div className="dashboard-stat-head">
                 <p className="stat-label">{label}</p>
-                <Icon size={18} style={{ color }} />
+                <Icon size={19} />
               </div>
               <div className="stat-value">{loading ? '—' : formatNumber(value)}</div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--t3)', marginTop: '0.25rem' }}>{unit}</p>
+              <p className="dashboard-stat-unit">{unit}</p>
             </div>
           ))}
         </div>
 
-        <div className="quick-nav quick-nav-dashboard">
+        <div className="quick-nav quick-nav-dashboard artistic-grid">
           {QUICK_NAV.map(({ label, href, Icon, desc }) => (
-            <Link key={href} href={href} className="quick-nav-card">
-              <Icon size={23} />
+            <Link key={href} href={href} className="quick-nav-card artistic-nav-card">
+              <Icon size={24} />
               <span>{label}</span>
               <small>{desc}</small>
             </Link>
           ))}
         </div>
 
-        <div className="grid grid-2" style={{ marginTop: '1.5rem' }}>
-          <div className="premium-card">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
-              <h2 style={{ margin: 0 }}>Weekly Activity</h2>
-              <Link href="/progress" style={{ fontSize: '0.78rem', color: 'var(--Au)' }}>View all →</Link>
+        <div className="grid grid-2 dashboard-bottom-grid">
+          <div className="premium-card artistic-panel-card">
+            <div className="panel-title-row">
+              <h2>Weekly Activity</h2>
+              <Link href="/progress">View all →</Link>
             </div>
             <ProgressChart values={weekly} label="Sessions" />
           </div>
 
-          <div className="premium-card">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
-              <h2 style={{ margin: 0 }}>Quick Start</h2>
-              <Link href="/workouts" style={{ fontSize: '0.78rem', color: 'var(--Au)' }}>All workouts →</Link>
+          <div className="premium-card artistic-panel-card">
+            <div className="panel-title-row">
+              <h2>Quick Start</h2>
+              <Link href="/workouts">All workouts →</Link>
             </div>
             {featured.length > 0 ? (
               <div style={{ display: 'grid', gap: '0.75rem' }}>
                 {featured.map((w) => (
-                  <Link key={w.id} href={`/workouts/session?id=${w.slug || w.id}`} className="mini-link">
+                  <Link key={w.id} href={`/workouts/session?id=${w.slug || w.id}`} className="mini-link workout-art-link">
                     <div>
-                      <strong style={{ fontSize: '0.9rem' }}>{w.name}</strong>
+                      <strong>{w.name}</strong>
                       <p className="muted" style={{ margin: 0, fontSize: '0.78rem' }}>{w.category}</p>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--Au)' }}>{w.duration} min</span>
+                      <span>{w.duration} min</span>
                     </div>
                   </Link>
                 ))}
@@ -131,16 +131,16 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-2" style={{ marginTop: '1.5rem' }}>
-          <Link href="/coach" className="premium-card dashboard-feature-card">
-            <Bot size={24} />
+        <div className="grid grid-2 dashboard-feature-grid">
+          <Link href="/coach" className="premium-card dashboard-feature-card artistic-feature-card">
+            <Bot size={25} />
             <div>
               <h2>AI Personal Coach</h2>
               <p className="muted">Open the dedicated AI coach page for fitness advice, form guidance, motivation, and plan feedback.</p>
             </div>
           </Link>
-          <Link href="/generate-plan" className="premium-card dashboard-feature-card">
-            <CalendarPlus size={24} />
+          <Link href="/generate-plan" className="premium-card dashboard-feature-card artistic-feature-card">
+            <CalendarPlus size={25} />
             <div>
               <h2>Generate Workout Session</h2>
               <p className="muted">Create a workout session based on your goal, fitness level, time, and available equipment.</p>
