@@ -1,5 +1,7 @@
 import { FALLBACK_PROGRAMS } from './programs';
 import { FALLBACK_WORKOUTS } from './workouts';
+import { programs } from '@/data/programs';
+import { workouts } from '@/data/workouts';
 
 const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://fit.cctamcc.site/api/v1';
 export const API_BASE = RAW_API_BASE.replace(/\/$/, '');
