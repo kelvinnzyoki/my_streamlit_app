@@ -1,41 +1,40 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getWorkouts } from '@/lib/api';
-import { fallbackWorkouts } from '@/lib/fallback';
-import type { Workout } from '@/types/workout';
-
-const TABS = ['All', 'Strength', 'Cardio', 'Core', 'HIIT', 'Mobility', 'Recovery'] as const;
 
 export function useWorkouts() {
-  const [all, setAll] = useState<Workout[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [all, setAll] = useState<any[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
+  const [loading, setLoading] = useState(true);
+  const [serverStatus, setServerStatus] = useState<'server' | 'fallback'>('server');
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
     getWorkouts()
-      .then((data) => setAll(data.length ? data : fallbackWorkouts))
-      .catch(() => setAll(fallbackWorkouts))
-      .finally(() => setLoading(false));
+      .then((items) => {
+        if (!active) return;
+        setAll(Array.isArray(items) ? items : []);
+        setServerStatus('server');
+      })
+      .catch(() => {
+        if (!active) return;
+        setAll([]);
+        setServerStatus('fallback');
+      })
+      .finally(() => active && setLoading(false));
+    return () => { active = false; };
   }, []);
 
-  const categories = useMemo(() => {
-    const fromData = [...new Set(all.map((w) => w.category))];
-    const merged = TABS.filter((t) => t === 'All' || fromData.includes(t));
-    // add any extra categories from data not in tabs
-    fromData.forEach((c) => { if (!merged.includes(c as typeof TABS[number])) merged.push(c as typeof TABS[number]); });
-    return merged as string[];
-  }, [all]);
+  const categories = useMemo(() => ['All', ...Array.from(new Set(all.map((w) => w.category).filter(Boolean)))], [all]);
+  const workouts = useMemo(() => all.filter((w) => {
+    const q = query.trim().toLowerCase();
+    const matchesQuery = !q || [w.name, w.description, w.category, w.level, w.difficulty].some((v) => String(v || '').toLowerCase().includes(q));
+    const matchesCat = category === 'All' || w.category === category;
+    return matchesQuery && matchesCat;
+  }), [all, query, category]);
 
-  const workouts = useMemo(() => {
-    const q = query.toLowerCase();
-    return all.filter((w) => {
-      const matchQ = !q || w.name.toLowerCase().includes(q) || w.description.toLowerCase().includes(q);
-      const matchC = category === 'All' || w.category === category;
-      return matchQ && matchC;
-    });
-  }, [all, query, category]);
-
-  return { workouts, categories, query, setQuery, category, setCategory, loading };
+  return { workouts, allWorkouts: all, categories, query, setQuery, category, setCategory, loading, serverStatus };
 }
