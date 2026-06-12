@@ -1,91 +1,129 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { AuthAPI } from '@/lib/api';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
-export type FlowFitUser = {
-  id?: string;
-  name?: string;
-  fullName?: string;
-  email?: string;
-  role?: string;
-  plan?: string;
-  isEmailVerified?: boolean;
-  [key: string]: unknown;
-};
+import { AuthAPI } from '@/lib/api';
+import type { User } from '@/types/user';
 
 type AuthContextValue = {
-  user: FlowFitUser | null;
-  setUser: (user: FlowFitUser | null) => void;
+  user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  refreshUser: () => Promise<FlowFitUser | null>;
+
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<FlowFitUser | null>(null);
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const setUser = useCallback((next: FlowFitUser | null) => {
-    setUserState(next);
-    if (typeof window === 'undefined') return;
-    if (next) localStorage.setItem('flowfit_user', JSON.stringify(next));
-    else localStorage.removeItem('flowfit_user');
-  }, []);
-
-  const refreshUser = useCallback(async () => {
+  /* ───────────────────────────────
+     Load current user on startup
+  ─────────────────────────────── */
+  const refreshUser = async () => {
     try {
       const me = await AuthAPI.me();
-      const normalized = me?.user || me?.data || me;
-      setUser(normalized || null);
-      return normalized || null;
+
+      if (me) {
+        setUser(me);
+      } else {
+        setUser(null);
+      }
     } catch {
       setUser(null);
-      return null;
     }
-  }, [setUser]);
+  };
 
   useEffect(() => {
-    let active = true;
-    (async () => {
-      if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem('flowfit_user');
-        if (cached) {
-          try { setUserState(JSON.parse(cached)); } catch { localStorage.removeItem('flowfit_user'); }
-        }
-      }
-      const me = await refreshUser();
-      if (active) {
-        if (!me) await AuthAPI.refresh().then(refreshUser).catch(() => null);
-        setLoading(false);
-      }
-    })();
-    return () => { active = false; };
-  }, [refreshUser]);
+    refreshUser().finally(() => setLoading(false));
+  }, []);
 
-  const logout = useCallback(async () => {
-    await AuthAPI.logout();
+  /* ───────────────────────────────
+     Login
+  ─────────────────────────────── */
+  const login = async (
+    email: string,
+    password: string,
+  ) => {
+    const result = await AuthAPI.login(
+      email,
+      password,
+    );
+
+    const loggedInUser =
+      result?.user ??
+      result?.data?.user ??
+      result;
+
+    if (!loggedInUser) {
+      throw new Error('Login failed');
+    }
+
+    setUser(loggedInUser);
+  };
+
+  /* ───────────────────────────────
+     Logout
+  ─────────────────────────────── */
+  const logout = async () => {
+    try {
+      await AuthAPI.logout();
+    } catch {
+      // ignore server logout failures
+    }
+
     setUser(null);
-    if (typeof window !== 'undefined') window.location.href = '/auth/login';
-  }, [setUser]);
+  };
 
-  const value = useMemo<AuthContextValue>(() => ({
-    user,
-    setUser,
-    loading,
-    isAuthenticated: !!user,
-    refreshUser,
-    logout,
-  }), [user, setUser, loading, refreshUser, logout]);
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      loading,
+      isAuthenticated: !!user,
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+      setUser,
+
+      login,
+      logout,
+
+      refreshUser,
+    }),
+    [user, loading],
+  );
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-export function useAuthContext() {
+export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuthContext must be used inside AuthProvider');
+
+  if (!ctx) {
+    throw new Error(
+      'useAuth must be used inside AuthProvider',
+    );
+  }
+
   return ctx;
 }
