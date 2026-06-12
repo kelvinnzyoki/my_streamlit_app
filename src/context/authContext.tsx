@@ -1,93 +1,91 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AuthAPI } from '@/lib/api';
-import { getStoredUser, hasSession } from '@/lib/auth';
-import type { User } from '@/types/user';
 
-type AuthContextValue = {
-  user: User | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (payload: Record<string, unknown>) => Promise<{ step: string; raw: unknown }>;
-  logout: () => Promise<void>;
-  refresh: () => Promise<void>;
-  setUser: (u: User | null) => void;
+export type FlowFitUser = {
+  id?: string;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  role?: string;
+  plan?: string;
+  isEmailVerified?: boolean;
+  [key: string]: unknown;
 };
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+type AuthContextValue = {
+  user: FlowFitUser | null;
+  setUser: (user: FlowFitUser | null) => void;
+  loading: boolean;
+  isAuthenticated: boolean;
+  refreshUser: () => Promise<FlowFitUser | null>;
+  logout: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<FlowFitUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const setUser = useCallback((next: FlowFitUser | null) => {
+    setUserState(next);
+    if (typeof window === 'undefined') return;
+    if (next) localStorage.setItem('flowfit_user', JSON.stringify(next));
+    else localStorage.removeItem('flowfit_user');
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const me = await AuthAPI.me();
+      const normalized = me?.user || me?.data || me;
+      setUser(normalized || null);
+      return normalized || null;
+    } catch {
+      setUser(null);
+      return null;
+    }
+  }, [setUser]);
 
   useEffect(() => {
     let active = true;
-    async function bootstrap() {
-      // Quick paint: show cached user immediately, verify in background
-      const cached = getStoredUser();
-      if (active && cached) setUser(cached);
-
-      if (hasSession()) {
-        try {
-          const { user: fresh } = await AuthAPI.me();
-          if (active) setUser(fresh);
-        } catch {
-          if (active) setUser(null);
+    (async () => {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('flowfit_user');
+        if (cached) {
+          try { setUserState(JSON.parse(cached)); } catch { localStorage.removeItem('flowfit_user'); }
         }
-      } else if (!cached) {
-        if (active) setUser(null);
       }
-
-      if (active) setLoading(false);
-    }
-    bootstrap();
+      const me = await refreshUser();
+      if (active) {
+        if (!me) await AuthAPI.refresh().then(refreshUser).catch(() => null);
+        setLoading(false);
+      }
+    })();
     return () => { active = false; };
-  }, []);
+  }, [refreshUser]);
 
-  async function login(email: string, password: string) {
-    const { user: u } = await AuthAPI.login(email, password);
-    setUser(u);
-  }
-
-  async function register(payload: Record<string, unknown>) {
-    const result = await AuthAPI.register(payload);
-    if (result.user) setUser(result.user);
-    return { step: result.step, raw: result.raw };
-  }
-
-  async function logout() {
+  const logout = useCallback(async () => {
     await AuthAPI.logout();
     setUser(null);
-  }
+    if (typeof window !== 'undefined') window.location.href = '/auth/login';
+  }, [setUser]);
 
-  async function refresh() {
-    try {
-      const { user: u } = await AuthAPI.refresh();
-      if (u) setUser(u);
-    } catch {
-      setUser(null);
-    }
-  }
-
-  const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, isAuthenticated: !!user, login, register, logout, refresh, setUser }),
-    [user, loading],
-  );
+  const value = useMemo<AuthContextValue>(() => ({
+    user,
+    setUser,
+    loading,
+    isAuthenticated: !!user,
+    refreshUser,
+    logout,
+  }), [user, setUser, loading, refreshUser, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth(): AuthContextValue {
+export function useAuthContext() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  if (!ctx) throw new Error('useAuthContext must be used inside AuthProvider');
   return ctx;
 }
