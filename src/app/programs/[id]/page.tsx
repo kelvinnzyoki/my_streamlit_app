@@ -1,110 +1,137 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
+'use client';
 
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import { getProgramById, getWorkouts } from '@/lib/api';
 import { imageUrl } from '@/lib/utils';
-
-import type { Workout } from '@/types/workout';
 import type { Program } from '@/types/program';
+import type { Workout } from '@/types/workout';
 
-export default async function ProgramDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default function ProgramDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [program, setProgram] = useState<Program | null>(null);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [program, workouts] = await Promise.all([
-    getProgramById(id),
-    getWorkouts(),
-  ]);
+  useEffect(() => {
+    if (!id) return;
+    Promise.all([getProgramById(id), getWorkouts()])
+      .then(([p, w]) => {
+        setProgram(p);
+        setWorkouts(w);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <DashboardShell>
+        <section className="page-section"><p className="muted">Loading program…</p></section>
+      </DashboardShell>
+    );
+  }
 
   if (!program) {
-    notFound();
-  }
-
-  const typedProgram = program as Program;
-  const typedWorkouts = workouts as Workout[];
-
-  const programWorkouts: Workout[] = [];
-
-  for (const wid of typedProgram.workouts as string[]) {
-    const matchedWorkout = typedWorkouts.find(
-      (workout: Workout) =>
-        workout.id === wid || workout.slug === wid
+    return (
+      <DashboardShell>
+        <section className="page-section">
+          <p className="muted">Program not found.</p>
+          <Link href="/programs" className="secondary-btn" style={{ marginTop: '1rem', display: 'inline-flex' }}>← Back to Programs</Link>
+        </section>
+      </DashboardShell>
     );
-
-    if (matchedWorkout) {
-      programWorkouts.push(matchedWorkout);
-    }
   }
+
+  const programWorkouts: Workout[] = (program.workouts as string[]).reduce<Workout[]>((acc, wid) => {
+    const match = workouts.find((w) => w.id === wid || w.slug === wid);
+    if (match) acc.push(match);
+    return acc;
+  }, []);
 
   return (
     <DashboardShell>
-      <section
-        className="grid grid-2"
-        style={{ alignItems: 'start' }}
-      >
-        <article className="premium-card">
-          <img
-            src={imageUrl(typedProgram.image)}
-            alt={typedProgram.title}
-            className="hero-img"
-          />
+      <section className="page-section">
+        <Link href="/programs" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--t2)', fontSize: '0.82rem', marginBottom: '1.25rem' }}>
+          <ArrowLeft size={14} /> Back to Programs
+        </Link>
 
-          <p className="eyebrow">
-            {typedProgram.level}
-          </p>
-
-          <h1>{typedProgram.title}</h1>
-
-          <p className="muted">
-            {typedProgram.description}
-          </p>
-
-          <div className="metric-row">
-            <span>{typedProgram.duration}</span>
-
-            {'focus' in typedProgram && (
-              <span>{typedProgram.focus}</span>
-            )}
-
-            <span>
-              {typedProgram.workouts.length} workouts
-            </span>
-          </div>
-        </article>
-
-        <article className="premium-card">
-          <h2>Program Workouts</h2>
-
-          {programWorkouts.length === 0 ? (
-            <p className="muted">
-              No workouts available.
-            </p>
-          ) : (
-            <div className="stack">
-              {programWorkouts.map((workout: Workout) => (
-                <Link
-                  key={workout.id}
-                  href={`/workouts/session?id=${
-                    workout.slug || workout.id
-                  }`}
-                  className="mini-link"
-                >
-                  <div>
-                    <strong>{workout.name}</strong>
-                  </div>
-
-                  <small>
-                    {workout.duration} min
-                  </small>
-                </Link>
-              ))}
+        <div className="grid grid-2" style={{ alignItems: 'start' }}>
+          {/* ── Overview card ── */}
+          <article className="premium-card">
+            {/* Hero image with gradient overlay */}
+            <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
+              <img
+                src={imageUrl(program.image)}
+                alt={program.title}
+                className="hero-img"
+                style={{ height: 260 }}
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,transparent 40%,rgba(7,6,12,0.8))', borderRadius: 18, display: 'flex', alignItems: 'flex-end', padding: '1rem' }}>
+                <span className="badge">{program.level}</span>
+              </div>
             </div>
-          )}
-        </article>
+
+            <p className="eyebrow">{program.level}</p>
+            <h1 style={{ marginBottom: '0.75rem' }}>{program.title}</h1>
+            <p className="muted">{program.description}</p>
+
+            <div className="metric-row">
+              <span>📅 {program.duration}</span>
+              {program.focus && <span>🎯 {program.focus}</span>}
+              <span>🏋️ {program.workouts.length} workouts</span>
+            </div>
+
+            <Link
+              href={`/workouts/session?id=${programWorkouts[0]?.slug || programWorkouts[0]?.id || ''}`}
+              className="primary-btn"
+              style={{ width: '100%', marginTop: '1.25rem' }}
+            >
+              Start Program
+            </Link>
+          </article>
+
+          {/* ── Workout list ── */}
+          <article className="premium-card">
+            <h2 style={{ marginBottom: '1.25rem' }}>
+              Program Workouts
+              <span style={{ fontFamily: 'var(--f-mono)', fontSize: '0.85rem', fontWeight: 300, color: 'var(--t2)', marginLeft: '0.5rem' }}>
+                {programWorkouts.length}
+              </span>
+            </h2>
+
+            {programWorkouts.length === 0 ? (
+              <p className="muted">Workouts will appear here once the server returns them.</p>
+            ) : (
+              <div>
+                {programWorkouts.map((w, i) => (
+                  <Link
+                    key={w.id}
+                    href={`/workouts/session?id=${w.slug || w.id}`}
+                    className="mini-link"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span style={{ fontFamily: 'var(--f-mono)', color: 'var(--Au)', fontWeight: 700, fontSize: '0.82rem', width: 22, flexShrink: 0 }}>
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <div>
+                        <strong style={{ fontSize: '0.9rem' }}>{w.name}</strong>
+                        <p className="muted" style={{ margin: 0, fontSize: '0.75rem' }}>{w.category} · {w.level}</p>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--Au)' }}>{w.duration} min</span>
+                      <p className="muted" style={{ margin: 0, fontSize: '0.72rem' }}>{w.calories} kcal</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </article>
+        </div>
       </section>
     </DashboardShell>
   );
