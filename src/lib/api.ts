@@ -1,5 +1,4 @@
-import { FALLBACK_PROGRAMS } from './programs';
-import { FALLBACK_WORKOUTS } from './workouts';
+
 import { programs } from '@/data/programs';
 import { workouts } from '@/data/workouts';
 
