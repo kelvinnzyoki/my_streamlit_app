@@ -996,3 +996,246 @@ body.sidebar-open {
   .dashboard-hero h1 { font-size: clamp(1.55rem, 9vw, 2.4rem); }
   .top-actions { gap: 0.45rem; }
 }
+
+/* PATCH V3 — cleaner sidebar account block, visible thin typography, centered logout modal, safer dashboard artistry */
+.sidebar-user-card {
+  position: relative;
+  display: grid;
+  gap: 0.78rem;
+  padding: 0.85rem;
+  margin-top: 0.85rem;
+  border: 1px solid var(--Au-14);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(212,175,55,0.075), rgba(255,255,255,0.025)),
+    rgba(7,6,12,0.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 32px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+.sidebar-user-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--Au-hi), transparent);
+  opacity: 0.7;
+}
+.sidebar-user-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.sidebar-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 30% 20%, var(--Au-hi), var(--Au) 48%, var(--Au-lo));
+  color: var(--ink);
+  font-family: 'Anton', 'Oswald', sans-serif;
+  font-size: 1.05rem;
+  line-height: 1;
+  box-shadow: 0 8px 24px var(--Au-20);
+}
+.sidebar-user-info {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+  align-content: center;
+}
+.sidebar-user-info strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.82rem;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  color: var(--t1);
+}
+.sidebar-user-info span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+  font-size: 0.68rem;
+  color: var(--t2);
+  letter-spacing: 0.01em;
+}
+.sidebar-user-card .plan-badge {
+  justify-self: start;
+  width: auto;
+  max-width: 100%;
+  padding: 0.25rem 0.66rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--Au-14), var(--Au-06));
+  border: 1px solid var(--Au-25);
+  color: var(--Au-hi);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sidebar-user-card .logout-btn {
+  margin-top: 0.12rem;
+  min-height: 39px;
+  border-radius: 12px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.dashboard-hero h1,
+.dashboard-page h1 {
+  font-family: 'Oswald', 'Josefin Sans', sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.015em !important;
+  text-transform: none !important;
+  line-height: 1.04 !important;
+  color: var(--t1) !important;
+  text-shadow: 0 2px 18px rgba(0,0,0,0.45);
+  background: linear-gradient(100deg, var(--t1) 0%, var(--Au-hi) 48%, var(--t1) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.dashboard-hero .muted,
+.dashboard-stat-card .stat-label,
+.artistic-nav-card span,
+.artistic-nav-card small,
+.artistic-panel-card p,
+.artistic-feature-card p {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.dashboard-stat-card {
+  padding: 1.45rem 1.2rem;
+  background:
+    radial-gradient(circle at top right, var(--Au-10), transparent 45%),
+    linear-gradient(145deg, rgba(20,18,32,0.96), rgba(8,7,14,0.97));
+}
+.dashboard-stat-head .stat-label {
+  color: var(--t4);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+}
+.dashboard-stat-card .stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+.artistic-panel-card,
+.artistic-feature-card {
+  background:
+    linear-gradient(145deg, rgba(212,175,55,0.07), rgba(255,255,255,0.025) 36%, rgba(7,6,12,0.72)),
+    var(--g-card);
+  border-color: var(--Au-20);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.035);
+}
+.panel-title-row h2,
+.artistic-feature-card h2 {
+  font-family: 'Oswald', 'Josefin Sans', sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.025em !important;
+  text-transform: none !important;
+  color: var(--Au-hi);
+}
+.artistic-feature-card {
+  align-items: center;
+  min-height: 132px;
+}
+.artistic-feature-card p { color: var(--t4); line-height: 1.72; }
+.workout-art-link strong {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+}
+
+.ff-confirm-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(1rem, 4vw, 2rem) !important;
+  overflow: auto !important;
+  background: rgba(0,0,0,0.74) !important;
+  backdrop-filter: blur(12px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(130%) !important;
+}
+.ff-confirm-box {
+  width: min(420px, calc(100vw - 2rem)) !important;
+  max-height: min(88vh, 520px) !important;
+  overflow: auto !important;
+  margin: auto !important;
+  padding: clamp(1.25rem, 4vw, 2rem) !important;
+  border-radius: 22px !important;
+  transform: none !important;
+  background:
+    radial-gradient(circle at top, var(--Au-10), transparent 42%),
+    linear-gradient(145deg, rgba(20,18,32,0.99), rgba(7,6,12,0.99)) !important;
+}
+.ff-confirm-title {
+  font-family: 'Oswald', sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  color: var(--t1) !important;
+}
+.ff-confirm-msg {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.9rem !important;
+  color: var(--t4) !important;
+}
+
+.program-detail-hero h1,
+.programs-page h1 {
+  letter-spacing: 0.015em !important;
+  text-transform: none !important;
+}
+.program-workout-row strong,
+.program-meta-pill,
+.program-detail-hero p {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+}
+
+@media (max-width: 900px) {
+  .sidebar-user-card {
+    padding: 0.55rem;
+    border-radius: 16px;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .sidebar-user-card::before { display: none; }
+  .sidebar-user-row { grid-template-columns: 1fr; justify-items: center; }
+  .sidebar-avatar { width: 38px; height: 38px; border-radius: 13px; }
+}
+@media (max-width: 768px) {
+  .sidebar.sidebar-open .sidebar-user-card {
+    padding: 0.85rem;
+    background: linear-gradient(145deg, rgba(212,175,55,0.075), rgba(255,255,255,0.025));
+    border-color: var(--Au-14);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 32px rgba(0,0,0,0.18);
+  }
+  .sidebar.sidebar-open .sidebar-user-row { grid-template-columns: 42px minmax(0, 1fr); justify-items: stretch; }
+  .sidebar.sidebar-open .sidebar-user-card .plan-badge { display: inline-block; }
+  .dashboard-hero h1 { font-size: clamp(2rem, 10vw, 3.2rem); }
+  .ff-confirm-actions { flex-direction: column; }
+}
