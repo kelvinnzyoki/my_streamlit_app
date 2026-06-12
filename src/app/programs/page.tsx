@@ -1,43 +1,72 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DashboardShell from '@/components/DashboardShell';
 import ProgramCard from '@/components/programCard';
 import { getPrograms } from '@/lib/api';
 import type { Program } from '@/types/program';
 
+type ProgramLike = Program & {
+  name?: string;
+  title?: string;
+  slug?: string;
+  workoutIds?: string[];
+};
+
+function normalizeProgram(program: ProgramLike): ProgramLike {
+  return {
+    ...program,
+    id: String(program.id || program.slug || program.title || program.name || crypto.randomUUID()),
+    title: program.title || program.name || 'Untitled Program',
+    level: program.level || 'All Levels',
+    description: program.description || 'Structured FlowFit training plan for home workouts.',
+    duration: program.duration || 'Flexible',
+    image: program.image || '/images/fit.webp',
+    workouts: Array.isArray(program.workouts)
+      ? program.workouts
+      : Array.isArray(program.workoutIds)
+        ? program.workoutIds
+        : [],
+  };
+}
+
 export default function ProgramsPage() {
-  const [programs, setPrograms] = useState<Program[]>([]);
+  const [programs, setPrograms] = useState<ProgramLike[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('All');
 
   useEffect(() => {
     getPrograms()
-      .then(setPrograms)
+      .then((items) => setPrograms(Array.isArray(items) ? items.map((p) => normalizeProgram(p as ProgramLike)) : []))
       .catch(() => setPrograms([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const levels = ['All', ...new Set(programs.map((p) => p.level))];
-  const [filter, setFilter] = useState('All');
-  const filtered = filter === 'All' ? programs : programs.filter((p) => p.level === filter);
+  const levels = useMemo(() => ['All', ...Array.from(new Set(programs.map((p) => p.level || 'All Levels')))], [programs]);
+  const filtered = filter === 'All' ? programs : programs.filter((p) => (p.level || 'All Levels') === filter);
 
   return (
     <DashboardShell>
-      <section className="page-section">
-        <p className="eyebrow">Programs</p>
-        <h1>Structured Training Plans</h1>
-        <p className="muted" style={{ marginBottom: '1.5rem', maxWidth: 560 }}>
-          Multi-week programs designed around specific goals — from beginner consistency to advanced performance.
-        </p>
+      <section className="page-section programs-page">
+        <div className="dashboard-hero compact-hero">
+          <div>
+            <p className="eyebrow">Programs</p>
+            <h1>Structured Training Plans</h1>
+            <p className="muted" style={{ maxWidth: 620 }}>
+              Multi-week programs designed around consistency, fat loss, core strength, mobility, and advanced performance.
+            </p>
+          </div>
+        </div>
 
         <div className="filter-tabs">
-          {levels.map((l) => (
+          {levels.map((level) => (
             <button
-              key={l}
-              className={`tab-btn ${filter === l ? 'active' : ''}`}
-              onClick={() => setFilter(l)}
+              key={level}
+              className={`tab-btn ${filter === level ? 'active' : ''}`}
+              onClick={() => setFilter(level)}
+              type="button"
             >
-              {l}
+              {level}
             </button>
           ))}
         </div>
@@ -54,7 +83,7 @@ export default function ProgramsPage() {
           </div>
         ) : (
           <div className="grid grid-3">
-            {filtered.map((p) => <ProgramCard key={p.id} program={p} />)}
+            {filtered.map((program) => <ProgramCard key={program.id} program={program as Program} />)}
           </div>
         )}
       </section>
