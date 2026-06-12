@@ -1,283 +1,186 @@
-import { getStoredUser, storeUser, hasSession } from '@/lib/auth';
-import type { User } from '@/types/user';
+import { FALLBACK_PROGRAMS } from './programs';
+import { FALLBACK_WORKOUTS } from './workouts';
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'https://fit.cctamcc.site/api/v1';
+const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://fit.cctamcc.site/api/v1';
+export const API_BASE = RAW_API_BASE.replace(/\/$/, '');
 
-// ── In-memory token store (never in localStorage for security) ──────────────
-let _accessToken: string | null = null;
-let _refreshing: Promise<string | null> | null = null;
-
-export const TokenManager = {
-  get: () => _accessToken,
-  set: (t: string | null) => { _accessToken = t; },
-  clear: () => {
-    _accessToken = null;
-    storeUser(null);
-  },
+export type ApiEnvelope<T = unknown> = {
+  success?: boolean;
+  data?: T;
+  user?: T;
+  message?: string;
+  error?: string;
+  [key: string]: unknown;
 };
 
-// ── Core request with silent 401→refresh→retry ───────────────────────────────
-export async function apiRequest<T = unknown>(
-  endpoint: string,
-  init: RequestInit = {},
-  retry = true,
-): Promise<T> {
-  const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(init.headers as Record<string, string> | undefined),
-  };
-  if (_accessToken) headers['Authorization'] = `Bearer ${_accessToken}`;
-
-  const res = await fetch(url, {
-    ...init,
-    credentials: 'include',
-    cache: 'no-store',
-    headers,
-  });
-
-  const ct = res.headers.get('content-type') || '';
-  const payload = ct.includes('application/json')
-    ? await res.json().catch(() => null)
-    : null;
-
-  if (res.status === 401 && retry && hasSession()) {
-    const fresh = await silentRefresh();
-    if (fresh) return apiRequest<T>(endpoint, init, false);
-    if (typeof window !== 'undefined') window.location.href = '/auth/login';
-    throw new Error('Session expired. Please log in again.');
+export class ApiError extends Error {
+  status: number;
+  payload?: unknown;
+  constructor(message: string, status = 0, payload?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.payload = payload;
   }
+}
 
-  if (!res.ok) {
-    const msg =
-      payload?.message || payload?.error || payload?.data?.message || 'Request failed';
-    throw new Error(msg);
+function getStoredToken() {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('flowfit_access_token') || sessionStorage.getItem('flowfit_access_token') || '';
+}
+
+function setStoredToken(token?: string) {
+  if (typeof window === 'undefined' || !token) return;
+  localStorage.setItem('flowfit_access_token', token);
+  sessionStorage.setItem('flowfit_access_token', token);
+}
+
+function clearStoredToken() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('flowfit_access_token');
+  sessionStorage.removeItem('flowfit_access_token');
+}
+
+function unwrap<T>(payload: ApiEnvelope<T> | T): T {
+  if (payload && typeof payload === 'object') {
+    const obj = payload as ApiEnvelope<T>;
+    if ('data' in obj) return obj.data as T;
+    if ('user' in obj) return obj.user as T;
   }
-
   return payload as T;
 }
 
-async function silentRefresh(): Promise<string | null> {
-  if (_refreshing) return _refreshing;
-  _refreshing = (async () => {
-    try {
-      const res = await fetch(`${API_BASE}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!res.ok) { TokenManager.clear(); return null; }
-      const data = await res.json();
-      const token = data?.accessToken || data?.data?.accessToken || null;
-      const user: User | null = data?.user || data?.data?.user || null;
-      TokenManager.set(token);
-      if (user) storeUser(user);
-      return token;
-    } catch {
-      TokenManager.clear();
-      return null;
-    } finally {
-      _refreshing = null;
-    }
-  })();
-  return _refreshing;
-}
-
-// ── Safe wrappers used by pages ──────────────────────────────────────────────
-async function safeGet<T>(endpoint: string, fallback: T): Promise<T> {
+async function refreshAccessToken(): Promise<boolean> {
   try {
-    const p = await apiRequest<any>(endpoint);
-    const d = p?.data !== undefined ? p.data : p?.result !== undefined ? p.result : p;
-    return (d ?? fallback) as T;
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return false;
+    const json = await res.json().catch(() => ({}));
+    const token = json?.accessToken || json?.token || json?.data?.accessToken || json?.data?.token;
+    if (token) setStoredToken(token);
+    return true;
   } catch {
-    return fallback;
+    return false;
   }
 }
 
-function unwrapArray<T>(p: unknown): T[] {
-  if (Array.isArray(p)) return p;
-  const obj = p as Record<string, unknown>;
-  for (const key of ['data', 'items', 'workouts', 'programs', 'logs', 'result']) {
-    if (Array.isArray(obj?.[key])) return obj[key] as T[];
-  }
-  return [];
-}
+export async function apiRequest<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
+  const token = getStoredToken();
+  const headers = new Headers(init.headers || {});
+  if (!headers.has('Content-Type') && init.body) headers.set('Content-Type', 'application/json');
+  if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
 
-async function safeList<T>(endpoint: string, fallback: T[]): Promise<T[]> {
-  try {
-    const p = await apiRequest<unknown>(endpoint);
-    const arr = unwrapArray<T>(p);
-    return arr.length ? arr : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-// ── Auth ─────────────────────────────────────────────────────────────────────
-export const AuthAPI = {
-  async login(email: string, password: string) {
-    const p = await apiRequest<any>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    const token = p?.accessToken || p?.data?.accessToken || p?.token || null;
-    const user: User | null = p?.user || p?.data?.user || p?.data || null;
-    TokenManager.set(token);
-    storeUser(user);
-    return { user, accessToken: token };
-  },
-
-  async register(data: Record<string, unknown>) {
-    const p = await apiRequest<any>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-    // Registration may return { message, step:'verify' } (OTP flow) OR user directly
-    const token = p?.accessToken || p?.data?.accessToken || null;
-    const user: User | null = p?.user || p?.data?.user || null;
-    if (token) TokenManager.set(token);
-    if (user) storeUser(user);
-    return { user, accessToken: token, step: p?.step || (user ? 'done' : 'verify'), raw: p };
-  },
-
-  async verifyEmail(email: string, otp: string) {
-    const p = await apiRequest<any>('/auth/verify-email', {
-      method: 'POST',
-      body: JSON.stringify({ email, otp }),
-    });
-    const token = p?.accessToken || p?.data?.accessToken || null;
-    const user: User | null = p?.user || p?.data?.user || p?.data || null;
-    if (token) TokenManager.set(token);
-    if (user) storeUser(user);
-    return { user, accessToken: token };
-  },
-
-  async checkEmail(email: string): Promise<{ available: boolean }> {
-    return safeGet<{ available: boolean }>(
-      `/auth/check-email?email=${encodeURIComponent(email)}`,
-      { available: true },
-    );
-  },
-
-  async forgotPassword(email: string) {
-    return apiRequest<any>('/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
-  },
-
-  async verifyResetOtp(email: string, otp: string) {
-    return apiRequest<any>('/auth/verify-reset-otp', {
-      method: 'POST',
-      body: JSON.stringify({ email, otp }),
-    });
-  },
-
-  async resetPassword(email: string, otp: string, password: string) {
-    return apiRequest<any>('/auth/reset-password', {
-      method: 'POST',
-      body: JSON.stringify({ email, otp, password }),
-    });
-  },
-
-  async me() {
-    const p = await apiRequest<any>('/auth/me');
-    const user: User | null = p?.user || p?.data?.user || p?.data || null;
-    const token = p?.accessToken || p?.data?.accessToken || null;
-    if (token) TokenManager.set(token);
-    if (user) storeUser(user);
-    return { user };
-  },
-
-  async refresh() {
-    const token = await silentRefresh();
-    return { accessToken: token, user: getStoredUser() };
-  },
-
-  async logout() {
-    try { await apiRequest('/auth/logout', { method: 'POST' }); } catch { /* ignore */ }
-    TokenManager.clear();
-  },
-};
-
-// ── Data endpoints ───────────────────────────────────────────────────────────
-import { fallbackWorkouts, fallbackPrograms } from '@/lib/fallback';
-import type { Workout } from '@/types/workout';
-import type { Program } from '@/types/program';
-
-export async function getWorkouts(): Promise<Workout[]> {
-  return safeList<Workout>('/workouts', fallbackWorkouts);
-}
-
-export async function getWorkoutById(id: string): Promise<Workout | null> {
-  if (!id) return null;
-  try {
-    return await safeGet<Workout | null>(`/workouts/${encodeURIComponent(id)}`, null);
-  } catch {
-    return fallbackWorkouts.find((w) => w.slug === id || w.id === id) ?? null;
-  }
-}
-
-export async function getPrograms(): Promise<Program[]> {
-  return safeList<Program>('/programs', fallbackPrograms);
-}
-
-export async function getProgramById(id: string): Promise<Program | null> {
-  if (!id) return null;
-  try {
-    return await safeGet<Program | null>(`/programs/${encodeURIComponent(id)}`, null);
-  } catch {
-    return fallbackPrograms.find((p) => p.slug === id || p.id === id) ?? null;
-  }
-}
-
-export type DashboardStats = {
-  totalWorkouts: number;
-  completedWorkouts: number;
-  totalCalories: number;
-  streak: number;
-  totalMinutes?: number;
-  activeProgram?: string;
-  weekly?: number[];
-  stats?: Record<string, number>;
-};
-
-export async function getDashboard(): Promise<DashboardStats> {
-  return safeGet<DashboardStats>('/dashboard', {
-    totalWorkouts: 0, completedWorkouts: 0, totalCalories: 0,
-    streak: 0, totalMinutes: 0, weekly: [],
+  const res = await fetch(`${API_BASE}${path.startsWith('/') ? path : `/${path}`}`, {
+    ...init,
+    credentials: 'include',
+    headers,
   });
+
+  if (res.status === 401 && retry) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) return apiRequest<T>(path, init, false);
+    clearStoredToken();
+    throw new ApiError('Your session has expired. Please login again.', 401);
+  }
+
+  const contentType = res.headers.get('content-type') || '';
+  const payload = contentType.includes('application/json') ? await res.json().catch(() => ({})) : await res.text().catch(() => '');
+
+  if (!res.ok) {
+    const msg = typeof payload === 'object'
+      ? ((payload as any).message || (payload as any).error || `Request failed with ${res.status}`)
+      : `Request failed with ${res.status}`;
+    throw new ApiError(msg, res.status, payload);
+  }
+
+  return unwrap<T>(payload as ApiEnvelope<T> | T);
 }
 
-export async function getProgress(period = '7d'): Promise<any> {
-  return safeGet<any>(`/progress?period=${period}`, { summary: {}, weekly: [] });
+async function serverFirst<T>(path: string, fallback: T, init?: RequestInit): Promise<T> {
+  try {
+    return await apiRequest<T>(path, init);
+  } catch (error) {
+    console.warn(`[FlowFit] Server unavailable for ${path}. Using frontend fallback.`, error);
+    return fallback;
+  }
 }
 
-export async function getProfile(): Promise<any> {
-  return safeGet<any>('/profile', null);
-}
+// Auth
+export const AuthAPI = {
+  async register(body: { name: string; email: string; password: string }) {
+    const result = await apiRequest<any>('/auth/register', { method: 'POST', body: JSON.stringify(body) });
+    const token = result?.accessToken || result?.token || result?.data?.accessToken;
+    if (token) setStoredToken(token);
+    return result;
+  },
+  async login(body: { email: string; password: string }) {
+    const result = await apiRequest<any>('/auth/login', { method: 'POST', body: JSON.stringify(body) });
+    const token = result?.accessToken || result?.token || result?.data?.accessToken;
+    if (token) setStoredToken(token);
+    return result;
+  },
+  async logout() {
+    try { await apiRequest('/auth/logout', { method: 'POST' }, false); } finally { clearStoredToken(); }
+  },
+  async me() { return apiRequest<any>('/users/me'); },
+  async refresh() { return refreshAccessToken(); },
+  async checkEmail(email: string) { return apiRequest<{ available: boolean }>(`/auth/check-email?email=${encodeURIComponent(email)}`); },
+  async verifyEmail(email: string, code: string) {
+    const result = await apiRequest<any>('/auth/verify-email', { method: 'POST', body: JSON.stringify({ email, code }) });
+    const token = result?.accessToken || result?.token || result?.data?.accessToken;
+    if (token) setStoredToken(token);
+    return result;
+  },
+  clearStoredToken,
+};
 
-export async function updateProfile(data: Record<string, unknown>): Promise<any> {
-  return apiRequest('/profile', { method: 'PUT', body: JSON.stringify(data) });
-}
+// Current user/profile
+export const getProfile = () => apiRequest<any>('/users/me');
+export const updateProfile = (body: any) => apiRequest<any>('/users/me', { method: 'PATCH', body: JSON.stringify(body) });
 
-export async function getSubscription(): Promise<any> {
-  return safeGet<any>('/subscription', null);
-}
+// Dashboard/progress
+export const getDashboard = () => apiRequest<any>('/progress/dashboard');
+export const getProgress = (period = '7d') => apiRequest<any>(`/progress?period=${encodeURIComponent(period)}`);
+export const getWorkoutHistory = (limit = 10) => apiRequest<any>(`/progress/history?limit=${limit}`);
 
-export async function getPlans(): Promise<any[]> {
-  return safeList<any>('/subscription/plans', []);
-}
+// Workouts: protected server-first; fallback only when server fails/offline
+export const getWorkouts = () => serverFirst<any[]>('/workouts', FALLBACK_WORKOUTS as any[]);
+export const getWorkoutById = async (id: string) => {
+  try { return await apiRequest<any>(`/workouts/${encodeURIComponent(id)}`); }
+  catch {
+    const local = (FALLBACK_WORKOUTS as any[]).find((w) => w.id === id || w.slug === id);
+    return local || null;
+  }
+};
+export const logWorkout = (body: any) => apiRequest<any>('/workouts/log', { method: 'POST', body: JSON.stringify(body) });
 
-export async function logWorkout(data: Record<string, unknown>): Promise<any> {
-  return apiRequest('/workouts/log', { method: 'POST', body: JSON.stringify(data) });
-}
+// Programs: protected server-first; fallback only when server fails/offline
+export const getPrograms = () => serverFirst<any[]>('/programs', FALLBACK_PROGRAMS as any[]);
+export const getProgramById = async (id: string) => {
+  try { return await apiRequest<any>(`/programs/${encodeURIComponent(id)}`); }
+  catch {
+    const local = (FALLBACK_PROGRAMS as any[]).find((p) => p.id === id || p.slug === id);
+    return local || null;
+  }
+};
+export const generateWorkoutPlan = (body: any) => apiRequest<any>('/programs/generate', { method: 'POST', body: JSON.stringify(body) });
+export const saveAiProgram = (body: any) => apiRequest<any>('/programs/ai', { method: 'POST', body: JSON.stringify(body) });
 
-export async function checkoutPlan(planId: string): Promise<{ authorizationUrl: string }> {
-  return apiRequest(`/subscription/plans/${planId}/checkout`, { method: 'POST' });
-}
+// Subscriptions
+export const getSubscription = () => apiRequest<any>('/subscriptions/current');
+export const getPlans = () => serverFirst<any[]>('/subscriptions/plans', []);
+export const checkoutPlan = (planId: string, interval = 'monthly', provider = 'paystack') =>
+  apiRequest<any>('/subscriptions/checkout', { method: 'POST', body: JSON.stringify({ planId, interval, provider }) });
+export const cancelSubscription = () => apiRequest<any>('/subscriptions/cancel', { method: 'POST' });
 
-export async function cancelSubscription(): Promise<any> {
-  return apiRequest('/subscription/cancel', { method: 'POST' });
-}
+// AI Coach
+export const askCoach = (message: string, context?: any) =>
+  apiRequest<any>('/ai/coach', { method: 'POST', body: JSON.stringify({ message, ...context }) });
+export const getCoachHistory = () => serverFirst<any[]>('/ai/coach/history', []);
+
+// Notifications
+export const getNotifications = () => serverFirst<any[]>('/notifications', []);
+export const markNotificationRead = (id: string) => apiRequest<any>(`/notifications/${id}/read`, { method: 'PUT' });
