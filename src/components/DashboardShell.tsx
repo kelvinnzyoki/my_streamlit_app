@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
-  Activity,
   BarChart3,
   Bot,
   CalendarPlus,
@@ -38,17 +37,17 @@ function FlowFitLogo({ compact = false }: { compact?: boolean }) {
   return (
     <span className="ff-logo" aria-label="FlowFit">
       <span className="ff-logo-mark">
-        <svg viewBox="0 0 44 44" role="img" aria-hidden="true">
+        <svg viewBox="0 0 48 48" role="img" aria-hidden="true">
           <defs>
-            <linearGradient id="flowfitLogoGradient" x1="6" y1="4" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+            <linearGradient id="flowfitShellLogoGradient" x1="7" y1="5" x2="41" y2="43" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#E8C96A" />
-              <stop offset="50%" stopColor="#C9A84C" />
+              <stop offset="48%" stopColor="#C9A84C" />
               <stop offset="100%" stopColor="#8E6E28" />
             </linearGradient>
           </defs>
-          <rect x="3" y="3" width="38" height="38" rx="13" fill="rgba(212,175,55,0.08)" stroke="rgba(212,175,55,0.34)" />
-          <path d="M9 24h5l3-10 5 19 5-23 4 14h4" stroke="url(#flowfitLogoGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <circle cx="34" cy="24" r="3" fill="url(#flowfitLogoGradient)" />
+          <rect x="4" y="4" width="40" height="40" rx="15" fill="rgba(212,175,55,0.08)" stroke="rgba(212,175,55,0.34)" />
+          <path d="M10 27h6l4-13 6 24 6-30 4 19h2" stroke="url(#flowfitShellLogoGradient)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <circle cx="38" cy="27" r="3.2" fill="url(#flowfitShellLogoGradient)" />
         </svg>
       </span>
       {!compact && (
@@ -66,23 +65,32 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const initial = useMemo(() => (user?.name || user?.fullName || user?.email || 'F')[0].toUpperCase(), [user]);
   const planLabel = user?.plan || 'Free';
 
   useEffect(() => {
-    document.body.classList.toggle('sidebar-open', open);
+    document.body.classList.toggle('sidebar-open', open || confirmLogout);
     return () => document.body.classList.remove('sidebar-open');
-  }, [open]);
+  }, [open, confirmLogout]);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  async function handleLogout() {
-    setOpen(false);
-    await logout();
-    router.replace('/auth/login');
+  async function confirmAndLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      setConfirmLogout(false);
+      setOpen(false);
+      router.replace('/auth/login');
+    } finally {
+      setLoggingOut(false);
+    }
   }
 
   return (
@@ -133,7 +141,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <span className={`plan-badge plan-${String(planLabel).toLowerCase()}`}>{planLabel} Plan</span>
-          <button className="logout-btn" type="button" onClick={handleLogout}>
+          <button className="logout-btn" type="button" onClick={() => setConfirmLogout(true)}>
             <LogOut size={15} />
             <span>Logout</span>
           </button>
@@ -154,6 +162,26 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
 
         {children}
       </main>
+
+      {confirmLogout && (
+        <div className="ff-confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+          <div className="ff-confirm-box">
+            <span className="ff-confirm-icon">⚠</span>
+            <h2 id="logout-title" className="ff-confirm-title">Log out of FlowFit?</h2>
+            <p className="ff-confirm-msg">
+              Your current session will end. Make sure any unsaved workout notes or profile changes are saved first.
+            </p>
+            <div className="ff-confirm-actions">
+              <button className="ff-confirm-cancel" type="button" onClick={() => setConfirmLogout(false)} disabled={loggingOut}>
+                Stay Logged In
+              </button>
+              <button className="ff-confirm-ok danger" type="button" onClick={confirmAndLogout} disabled={loggingOut}>
+                {loggingOut ? 'Logging out…' : 'Yes, Logout'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
