@@ -6,8 +6,8 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
   type Dispatch,
+  type ReactNode,
   type SetStateAction,
 } from 'react';
 
@@ -26,6 +26,16 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function extractUser(result: any): User | null {
+  return (
+    result?.user ??
+    result?.data?.user ??
+    result?.data ??
+    result ??
+    null
+  );
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,16 +43,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function refreshUser() {
     try {
       const result = await AuthAPI.me();
-      const currentUser = result?.user ?? result?.data?.user ?? result;
-      setUser(currentUser || null);
+      setUser(extractUser(result));
     } catch {
       setUser(null);
     }
   }
 
   async function login(email: string, password: string) {
-    const result = await AuthAPI.login(email, password);
-    const loggedInUser = result?.user ?? result?.data?.user ?? result;
+    const result = await AuthAPI.login({ email, password });
+    const loggedInUser = extractUser(result);
 
     if (!loggedInUser) {
       throw new Error('Login failed');
@@ -54,11 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     try {
       await AuthAPI.logout();
-    } catch {
-      // Ignore logout API failure and clear local state anyway.
+    } finally {
+      setUser(null);
     }
-
-    setUser(null);
   }
 
   useEffect(() => {
@@ -78,7 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, loading],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {
