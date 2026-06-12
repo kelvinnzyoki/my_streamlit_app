@@ -1,25 +1,20 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/authContext';
+import { ToastProvider } from '@/components/ToastProvider';
 
 export const metadata: Metadata = {
-  title: 'FlowFit — AI Home Fitness',
-  description: 'AI-powered home workouts, analytics, progress tracking, and programs.',
+  title: 'FlowFit',
+  description: 'AI home fitness platform with protected workout analytics.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <head>
-        {/* Prevent flash of wrong theme */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var s=localStorage.getItem('flowfit-theme');if(s==='light'){document.documentElement.classList.add('light-mode');document.documentElement.dataset.theme='light';}else{document.documentElement.dataset.theme='dark';}})();`,
-          }}
-        />
-      </head>
+    <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );
