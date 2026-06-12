@@ -7,6 +7,8 @@ import {
   useMemo,
   useState,
   type ReactNode,
+  type Dispatch,
+  type SetStateAction,
 } from 'react';
 
 import { AuthAPI } from '@/lib/api';
@@ -16,113 +18,74 @@ type AuthContextValue = {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-
+  setUser: Dispatch<SetStateAction<User | null>>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-
   refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /* ───────────────────────────────
-     Load current user on startup
-  ─────────────────────────────── */
-  const refreshUser = async () => {
+  async function refreshUser() {
     try {
-      const me = await AuthAPI.me();
-
-      if (me) {
-        setUser(me);
-      } else {
-        setUser(null);
-      }
+      const result = await AuthAPI.me();
+      const currentUser = result?.user ?? result?.data?.user ?? result;
+      setUser(currentUser || null);
     } catch {
       setUser(null);
     }
-  };
+  }
 
-  useEffect(() => {
-    refreshUser().finally(() => setLoading(false));
-  }, []);
-
-  /* ───────────────────────────────
-     Login
-  ─────────────────────────────── */
-  const login = async (
-    email: string,
-    password: string,
-  ) => {
-    const result = await AuthAPI.login(
-      email,
-      password,
-    );
-
-    const loggedInUser =
-      result?.user ??
-      result?.data?.user ??
-      result;
+  async function login(email: string, password: string) {
+    const result = await AuthAPI.login(email, password);
+    const loggedInUser = result?.user ?? result?.data?.user ?? result;
 
     if (!loggedInUser) {
       throw new Error('Login failed');
     }
 
     setUser(loggedInUser);
-  };
+  }
 
-  /* ───────────────────────────────
-     Logout
-  ─────────────────────────────── */
-  const logout = async () => {
+  async function logout() {
     try {
       await AuthAPI.logout();
     } catch {
-      // ignore server logout failures
+      // Ignore logout API failure and clear local state anyway.
     }
 
     setUser(null);
-  };
+  }
+
+  useEffect(() => {
+    refreshUser().finally(() => setLoading(false));
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       loading,
-      isAuthenticated: !!user,
-
+      isAuthenticated: Boolean(user),
       setUser,
-
       login,
       logout,
-
       refreshUser,
     }),
     [user, loading],
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
 
   if (!ctx) {
-    throw new Error(
-      'useAuth must be used inside AuthProvider',
-    );
+    throw new Error('useAuth must be used inside AuthProvider');
   }
 
   return ctx;
