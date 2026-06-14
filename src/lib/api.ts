@@ -31,14 +31,13 @@ export class ApiError extends Error {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Ported from old api.js:
-   - Access token is in memory only.
-   - Refresh/auth cookies are sent with credentials:'include'.
-   - ff_session cookie triggers silent refresh after reload.
-   - Concurrent refreshes are deduplicated.
-───────────────────────────────────────────────────────────── */
-
+/*
+  FlowFit browser auth model, ported from the old HTML api.js:
+  - access token stays in memory only;
+  - backend httpOnly cookies are sent with credentials:'include';
+  - ff_session cookie allows silent refresh after reload;
+  - concurrent refreshes are deduplicated.
+*/
 const TokenManager = {
   _accessToken: null as string | null,
 
@@ -86,12 +85,7 @@ const TokenManager = {
 export const FlowFitTokenManager = TokenManager;
 
 function extractToken(payload: any): string | undefined {
-  return (
-    payload?.accessToken ||
-    payload?.token ||
-    payload?.data?.accessToken ||
-    payload?.data?.token
-  );
+  return payload?.accessToken || payload?.token || payload?.data?.accessToken || payload?.data?.token;
 }
 
 function extractUser(payload: any): any {
@@ -120,11 +114,10 @@ export async function refreshAccessToken(): Promise<boolean> {
       if (!response.ok) return false;
       const data = await response.json().catch(() => ({}));
       const token = extractToken(data);
-      if (token) {
-        TokenManager.setTokens(token);
-        return true;
-      }
-      return false;
+      if (!token) return false;
+
+      TokenManager.setTokens(token);
+      return true;
     } catch {
       return false;
     } finally {
@@ -198,16 +191,12 @@ function asArray(payload: any, keys: string[] = []): any[] {
   if (Array.isArray(payload)) return payload;
   if (!payload || typeof payload !== 'object') return [];
 
-  for (const key of keys) {
-    if (Array.isArray(payload[key])) return payload[key];
-  }
+  for (const key of keys) if (Array.isArray(payload[key])) return payload[key];
 
   if (payload.data) {
     if (Array.isArray(payload.data)) return payload.data;
     if (typeof payload.data === 'object') {
-      for (const key of keys) {
-        if (Array.isArray(payload.data[key])) return payload.data[key];
-      }
+      for (const key of keys) if (Array.isArray(payload.data[key])) return payload.data[key];
     }
   }
 
@@ -240,6 +229,16 @@ function fallbackWorkoutImage(name = '') {
   return match ? `${match}.webp` : 'fit.webp';
 }
 
+function minutesSeriesFromByDate(byDate: Record<string, number> | undefined, days: number) {
+  const today = new Date();
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (days - 1 - i));
+    const key = d.toISOString().slice(0, 10);
+    return Number(byDate?.[key] || 0);
+  });
+}
+
 export function normalizeWorkout(input: any): Workout {
   const name = input?.name || input?.title || input?.exerciseName || 'Untitled Exercise';
   const caloriesPerMin = Number(input?.caloriesPerMin ?? input?.calories_per_min ?? 7);
@@ -247,8 +246,8 @@ export function normalizeWorkout(input: any): Workout {
   const calories = Number(input?.calories ?? input?.caloriesBurned ?? Math.max(1, Math.round(caloriesPerMin * duration)));
 
   return {
-    id: String(input?.id || input?.slug || name.toLowerCase().replace(/\s+/g, '-')),
-    slug: input?.slug || input?.id,
+    id: String(input?.id || input?.exerciseId || input?.slug || name.toLowerCase().replace(/\s+/g, '-')),
+    slug: input?.slug || input?.id || input?.exerciseId,
     name,
     description: input?.description || input?.notes || 'Guided FlowFit bodyweight exercise from your protected server library.',
     image: input?.image || input?.imageUrl || input?.thumbnail || fallbackWorkoutImage(name),
@@ -276,6 +275,7 @@ export function normalizeProgram(input: any): Program & { weeks?: any[]; days?: 
 
   const durationWeeks = Number(input?.durationWeeks ?? input?.duration_weeks ?? metadata?.durationWeeks ?? 1);
   const daysPerWeek = Number(input?.daysPerWeek ?? input?.days_per_week ?? metadata?.daysPerWeek ?? 1);
+  const focus = input?.focus || input?.category || metadata?.focus || input?.type;
 
   return {
     id: String(input?.id || input?.slug || title.toLowerCase().replace(/\s+/g, '-')),
@@ -283,7 +283,7 @@ export function normalizeProgram(input: any): Program & { weeks?: any[]; days?: 
     title,
     description: input?.description || metadata?.description || 'Structured FlowFit program from your protected server.',
     level: input?.level || input?.difficulty || metadata?.level || 'Beginner',
-    focus: input?.focus || input?.category || metadata?.focus,
+    focus,
     duration: input?.duration || `${durationWeeks} week${durationWeeks === 1 ? '' : 's'} · ${daysPerWeek} day${daysPerWeek === 1 ? '' : 's'}/week`,
     image: input?.image || input?.imageUrl || metadata?.image || 'fit1.webp',
     workouts: workoutIds,
@@ -293,20 +293,10 @@ export function normalizeProgram(input: any): Program & { weeks?: any[]; days?: 
   };
 }
 
-async function serverFirstArray<T>(path: string, fallback: T[], keys: string[], normalizer: (item: any) => T): Promise<T[]> {
-  try {
-    const response = await apiRequest<any>(path);
-    const items = asArray(response, keys).map(normalizer);
-    return items.length ? items : fallback;
-  } catch (error) {
-    console.warn(`[FlowFit] Server unavailable for ${path}. Using frontend fallback.`, error);
-    return fallback;
-  }
-}
-
 let workoutsBasePath: '/workouts' | '/exercises' | null = null;
 async function resolveWorkoutsPath() {
   if (workoutsBasePath) return workoutsBasePath;
+
   try {
     const response = await fetch(`${API_BASE}/workouts?limit=1`, {
       credentials: 'include',
@@ -321,6 +311,7 @@ async function resolveWorkoutsPath() {
       return workoutsBasePath;
     }
   } catch {}
+
   workoutsBasePath = '/exercises';
   return workoutsBasePath;
 }
@@ -377,9 +368,7 @@ export const AuthAPI = {
 
   async logout() {
     TokenManager.clearTokens();
-    try {
-      await apiRequest('/auth/logout', { method: 'POST' }, false);
-    } catch {}
+    try { await apiRequest('/auth/logout', { method: 'POST' }, false); } catch {}
   },
 
   async me() { return AuthAPI.getCurrentUser(); },
@@ -439,7 +428,13 @@ export const AuthAPI = {
   clearStoredToken: TokenManager.clearTokens.bind(TokenManager),
 };
 
-/* ───────────────────── Workouts ───────────────────── */
+/* ───────────────────── Workouts / Exercises ─────────────────────
+   Backend route alignment:
+   GET    /api/v1/workouts?category=&q=&limit=&page=
+   GET    /api/v1/workouts/search?q=
+   GET    /api/v1/workouts/:id
+   Schema model: Exercise. The frontend normalizes Exercise => Workout.
+───────────────────────────────────────────────────────────── */
 
 export const WorkoutsAPI = {
   async getExercises(filters: Record<string, unknown> = {}) {
@@ -483,7 +478,17 @@ export async function getWorkoutById(id: string) {
   }
 }
 
-/* ───────────────────── Programs ───────────────────── */
+/* ───────────────────── Programs ─────────────────────
+   Backend route alignment:
+   GET    /api/v1/programs?difficulty=&category=&type=&mine=&limit=&page=
+   GET    /api/v1/programs/:id
+   POST   /api/v1/programs
+   PATCH  /api/v1/programs/:id
+   POST   /api/v1/programs/:id/enroll
+   GET    /api/v1/programs/my-enrollments
+   PUT    /api/v1/programs/enrollments/:enrollmentId/progress
+   DELETE /api/v1/programs/enrollments/:enrollmentId
+───────────────────────────────────────────────────────────── */
 
 export const ProgramsAPI = {
   async getPrograms(filters: Record<string, unknown> = {}) {
@@ -495,6 +500,20 @@ export const ProgramsAPI = {
   async getProgramById(id: string) {
     const response = await apiRequest<any>(`/programs/${encodeURIComponent(id)}`);
     return { ...response, success: response?.success !== false, data: normalizeProgram(firstData(response)) };
+  },
+
+  async createProgram(payload: any) {
+    return apiRequest<any>('/programs', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateProgram(programId: string, payload: any) {
+    return apiRequest<any>(`/programs/${encodeURIComponent(programId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
   },
 
   async enrollInProgram(programId: string) {
@@ -526,6 +545,7 @@ export const ProgramsAPI = {
   },
 
   async getAiProgram() { return apiRequest<any>('/programs/ai-generated'); },
+
   async saveAiProgram(payload: any) {
     return apiRequest<any>('/programs', {
       method: 'POST',
@@ -557,11 +577,15 @@ export async function getProgramById(id: string) {
 export const generateWorkoutPlan = (body: any) => apiRequest<any>('/ai/generate-workout-plan', {
   method: 'POST',
   body: JSON.stringify(body),
-}).catch(() => apiRequest<any>('/programs', { method: 'POST', body: JSON.stringify({ ...body, type: 'ai_generated' }) }));
+}).catch(() => ProgramsAPI.saveAiProgram(body));
 
 export const saveAiProgram = ProgramsAPI.saveAiProgram;
 
-/* ───────────────────── Progress ───────────────────── */
+/* ───────────────────── Progress ─────────────────────
+   Backend route alignment:
+   POST /api/v1/progress body:
+   { exerciseId, duration, sets?, reps?, caloriesBurned?, heartRate?, difficulty?, notes?, bodyWeight? }
+───────────────────────────────────────────────────────────── */
 
 export const ProgressAPI = {
   async logWorkout(workoutData: any) {
@@ -601,15 +625,36 @@ export const logWorkout = ProgressAPI.logWorkout;
 
 export async function getDashboard() {
   try {
-    const [stats, streaks, history] = await Promise.all([
+    const [statsPayload, streakPayload, historyPayload] = await Promise.all([
       ProgressAPI.getStats('30d').catch(() => null),
       ProgressAPI.getStreaks().catch(() => null),
       ProgressAPI.getWorkoutHistory(7).catch(() => null),
     ]);
+
+    const stats = firstData(statsPayload) || {};
+    const streak = firstData(streakPayload) || {};
+    const recentWorkouts = asArray(historyPayload, ['history', 'logs', 'workouts', 'items']).map((log) => ({
+      ...log,
+      workout: log.exercise || log.workout,
+      exercise: log.exercise || log.workout,
+    }));
+
     return {
-      stats: firstData(stats)?.stats || firstData(stats) || {},
-      streak: firstData(streaks),
-      recentWorkouts: asArray(history, ['history', 'logs', 'workouts', 'items']),
+      stats: {
+        ...stats,
+        streak: streak.currentStreak ?? streak.streak ?? 0,
+        totalStreak: streak.currentStreak ?? streak.streak ?? 0,
+        completedWorkouts: stats.totalWorkouts ?? stats.workouts ?? recentWorkouts.length,
+        totalWorkouts: stats.totalWorkouts ?? stats.workouts ?? recentWorkouts.length,
+        totalMinutes: stats.totalDuration ?? stats.totalMinutes ?? stats.minutes ?? 0,
+        minutes: stats.totalDuration ?? stats.totalMinutes ?? stats.minutes ?? 0,
+        totalCalories: stats.totalCalories ?? stats.calories ?? 0,
+        calories: stats.totalCalories ?? stats.calories ?? 0,
+      },
+      streak,
+      recentWorkouts,
+      weekly: minutesSeriesFromByDate(stats.byDate, 7),
+      raw: { statsPayload, streakPayload, historyPayload },
     };
   } catch {
     return {};
@@ -617,25 +662,32 @@ export async function getDashboard() {
 }
 
 export async function getProgress(period = '7d') {
+  const days = period === '7d' ? 7 : period === '90d' ? 90 : 30;
+
   try {
-    const [stats, history] = await Promise.all([
+    const [statsPayload, streakPayload, historyPayload] = await Promise.all([
       ProgressAPI.getStats(period).catch(() => null),
-      ProgressAPI.getWorkoutHistory(period === '7d' ? 7 : period === '90d' ? 90 : 30).catch(() => null),
+      ProgressAPI.getStreaks().catch(() => null),
+      ProgressAPI.getWorkoutHistory(days).catch(() => null),
     ]);
-    const statData = firstData(stats)?.stats || firstData(stats) || {};
-    const logs = asArray(history, ['history', 'logs', 'workouts', 'items']);
+
+    const stats = firstData(statsPayload) || {};
+    const streak = firstData(streakPayload) || {};
+    const logs = asArray(historyPayload, ['history', 'logs', 'workouts', 'items']);
+    const weekly = Array.isArray(stats.weekly) ? stats.weekly : minutesSeriesFromByDate(stats.byDate, Math.min(days, 30));
+
     return {
       summary: {
-        workouts: statData.totalWorkouts ?? statData.workouts ?? logs.length,
-        calories: statData.totalCalories ?? statData.calories ?? 0,
-        streak: statData.currentStreak ?? statData.streak ?? 0,
-        minutes: statData.totalMinutes ?? statData.minutes ?? 0,
+        workouts: stats.totalWorkouts ?? stats.workouts ?? logs.length,
+        calories: stats.totalCalories ?? stats.calories ?? 0,
+        streak: streak.currentStreak ?? stats.currentStreak ?? stats.streak ?? 0,
+        minutes: stats.totalDuration ?? stats.totalMinutes ?? stats.minutes ?? 0,
       },
-      weekly: statData.weekly || statData.daily || Array.from({ length: 7 }, (_, i) => logs[i] ? 1 : 0),
-      daily: statData.daily,
-      calories: statData.caloriesByDay || statData.calories || [],
-      bestWorkout: logs[0]?.exercise || logs[0] || null,
-      raw: { stats, history },
+      weekly,
+      daily: weekly,
+      calories: Array.isArray(stats.caloriesByDay) ? stats.caloriesByDay : [],
+      bestWorkout: logs[0]?.exercise || logs[0]?.workout || logs[0] || null,
+      raw: { statsPayload, streakPayload, historyPayload },
     };
   } catch {
     return { summary: {}, weekly: [], calories: [] };
@@ -661,15 +713,18 @@ export const SubscriptionAPI = {
     const res = await apiRequest<any>('/subscriptions/plans');
     return Array.isArray(res?.plans) ? { success: true, data: res.plans } : res;
   },
+
   async getCurrentSubscription() {
     const res = await apiRequest<any>('/subscriptions/current');
     if (res && 'subscription' in res) return { success: true, data: res.subscription, plan: res.plan || res.subscription?.plan || null };
     return res;
   },
+
   createCheckoutSession: (planId: string, interval = 'MONTHLY', callbackUrl?: string) => apiRequest<any>('/subscriptions/checkout', {
     method: 'POST',
     body: JSON.stringify({ planId, interval, ...(callbackUrl ? { callbackUrl } : {}) }),
   }),
+
   createPaystackCheckout: (planId: string, interval = 'MONTHLY', callbackUrl?: string) => SubscriptionAPI.createCheckoutSession(planId, interval, callbackUrl),
   verifyPayment: (reference: string) => apiRequest<any>(`/subscriptions/paystack/verify/${encodeURIComponent(reference)}`),
   cancelSubscription: () => apiRequest<any>('/subscriptions/cancel', { method: 'POST' }),
@@ -677,8 +732,12 @@ export const SubscriptionAPI = {
 
 export const getSubscription = async () => firstData(await SubscriptionAPI.getCurrentSubscription());
 export const getPlans = async () => {
-  try { return asArray(await SubscriptionAPI.getPlans(), ['plans', 'items']).length ? asArray(await SubscriptionAPI.getPlans(), ['plans', 'items']) : []; }
-  catch { return []; }
+  try {
+    const response = await SubscriptionAPI.getPlans();
+    return asArray(response, ['plans', 'items']);
+  } catch {
+    return [];
+  }
 };
 export const checkoutPlan = (planId: string, interval = 'MONTHLY') => SubscriptionAPI.createPaystackCheckout(planId, interval);
 export const cancelSubscription = SubscriptionAPI.cancelSubscription;
