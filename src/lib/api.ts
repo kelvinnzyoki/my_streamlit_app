@@ -202,6 +202,22 @@ export const AuthAPI = {
     if (token) setAccessToken(token);
     return data;
   },
+  async checkEmail(email: string) {
+    const encodedEmail = encodeURIComponent(email.trim().toLowerCase());
+    return apiRequest<{ available: boolean }>(`/auth/check-email?email=${encodedEmail}`);
+  },
+  async verifyEmail(email: string, code: string) {
+    const data = await apiRequest<any>('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim().toLowerCase(), code }),
+    });
+    const token = extractToken(data);
+    if (token) setAccessToken(token);
+    return data;
+  },
+  clearStoredToken() {
+    accessToken = null;
+  },
   async me() {
     return apiRequest<any>('/auth/me').catch(() => apiRequest<any>('/users/me'));
   },
