@@ -229,155 +229,15 @@ function toQueryString(params: Record<string, unknown> = {}) {
   return stringified ? `?${stringified}` : '';
 }
 
-function slugify(value = '') {
-  return String(value)
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function compactExerciseSlug(value = '') {
-  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
-}
-
-function parseMetadata(input: any): any {
-  const value = input?.metadata;
-  if (!value) return {};
-  if (typeof value === 'object') return value;
-  if (typeof value === 'string') {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return {};
-    }
-  }
-  return {};
-}
-
 function fallbackWorkoutImage(name = '') {
-  const slug = compactExerciseSlug(name);
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '');
   const known = [
     'boxjumps','burpees','buttkicks','childpose','crunches','downwarddog','glutebridges',
     'highknees','hipflexor','jumpingjacks','jumpsquats','legraises','lunges','mountainclimbers',
-    'pikepushups','plank','pushups','russiantwists','sprints','squats','tricepdips','pushups',
+    'pikepushups','plank','pushups','russiantwists','sprints','squats','tricepdips',
   ];
   const match = known.find((k) => slug.includes(k));
   return match ? `${match}.webp` : 'fit.webp';
-}
-
-function normalizeExerciseName(name = '') {
-  const raw = String(name || '').trim();
-  const lower = raw.toLowerCase();
-  if (lower === 'push-ups' || lower === 'push ups') return 'Pushups';
-  if (lower === 'glute bridges') return 'Glute Bridges';
-  if (lower === 'tricep dips') return 'Tricep Dips';
-  if (lower === 'leg raises') return 'Leg Raises';
-  if (lower === 'mountain climbers') return 'Mountain Climbers';
-  if (lower === 'russian twists') return 'Russian Twists';
-  if (lower === 'jumping jacks') return 'Jumping Jacks';
-  return raw || 'Program Exercise';
-}
-
-function programTemplateExercises(category?: string, difficulty?: string) {
-  const cat = String(category || '').toLowerCase();
-  const level = String(difficulty || '').toLowerCase();
-
-  if (cat.includes('strength')) {
-    return [
-      { name: 'Pushups', sets: level.includes('advanced') ? 5 : 4, reps: level.includes('beginner') ? '8-12' : '10-15', restSeconds: 75, notes: 'Upper-body strength' },
-      { name: 'Squats', sets: level.includes('advanced') ? 5 : 4, reps: level.includes('beginner') ? '10-12' : '12-18', restSeconds: 75, notes: 'Lower-body strength' },
-      { name: 'Lunges', sets: 3, reps: '10 each side', restSeconds: 60, notes: 'Single-leg control' },
-      { name: 'Plank', sets: 3, reps: '30-60s', restSeconds: 45, notes: 'Core stability' },
-    ];
-  }
-
-  if (cat.includes('hiit') || cat.includes('conditioning')) {
-    return [
-      { name: 'Jumping Jacks', sets: 4, reps: '30-45s', restSeconds: 30, notes: 'Warm-up and cardio' },
-      { name: 'Burpees', sets: level.includes('beginner') ? 3 : 4, reps: level.includes('advanced') ? '12-18' : '8-12', restSeconds: 45, notes: 'Full-body conditioning' },
-      { name: 'Mountain Climbers', sets: 4, reps: '30-45s', restSeconds: 30, notes: 'Core/cardio drive' },
-      { name: 'High Knees', sets: 4, reps: '30-45s', restSeconds: 30, notes: 'Speed and endurance' },
-    ];
-  }
-
-  if (cat.includes('core')) {
-    return [
-      { name: 'Plank', sets: 4, reps: '30-60s', restSeconds: 45, notes: 'Anti-extension core strength' },
-      { name: 'Crunches', sets: 4, reps: '12-20', restSeconds: 45, notes: 'Controlled spinal flexion' },
-      { name: 'Russian Twists', sets: 3, reps: '16-24 total', restSeconds: 45, notes: 'Rotational control' },
-      { name: 'Leg Raises', sets: 3, reps: '10-15', restSeconds: 45, notes: 'Lower-ab focus' },
-    ];
-  }
-
-  if (cat.includes('mobility')) {
-    return [
-      { name: 'Child Pose', sets: 2, reps: '45-60s', restSeconds: 20, notes: 'Breathing and spinal decompression' },
-      { name: 'Downward Dog', sets: 3, reps: '30-45s', restSeconds: 20, notes: 'Posterior chain mobility' },
-      { name: 'Hip Flexor Stretch', sets: 2, reps: '45s each side', restSeconds: 20, notes: 'Hip opening' },
-      { name: 'Glute Bridges', sets: 3, reps: '12-15', restSeconds: 45, notes: 'Low-impact posterior chain activation' },
-    ];
-  }
-
-  return [
-    { name: 'Pushups', sets: 3, reps: '8-15', restSeconds: 60, notes: 'Strength block' },
-    { name: 'Squats', sets: 3, reps: '12-20', restSeconds: 60, notes: 'Lower-body block' },
-    { name: 'Mountain Climbers', sets: 3, reps: '30-45s', restSeconds: 45, notes: 'Conditioning block' },
-    { name: 'Plank', sets: 3, reps: '30-60s', restSeconds: 45, notes: 'Core finisher' },
-  ];
-}
-
-function exerciseItemFromPlanExercise(ex: any, index: number) {
-  const name = normalizeExerciseName(ex?.name || ex?.exerciseName || `Exercise ${index + 1}`);
-  const id = ex?.exerciseId || ex?.id || slugify(name);
-
-  return {
-    id: `${id}-${index + 1}`,
-    exerciseId: String(id),
-    exerciseName: name,
-    sets: Number(ex?.sets || 3),
-    reps: String(ex?.reps || '10-15'),
-    restSeconds: Number(ex?.restSeconds || ex?.rest || 60),
-    notes: ex?.notes || '',
-    orderIndex: index,
-    exercise: {
-      id: String(id),
-      slug: slugify(name),
-      name,
-      category: ex?.category || 'Program',
-      description: ex?.description || ex?.notes || 'Program exercise from your FlowFit plan.',
-      caloriesPerMin: Number(ex?.caloriesPerMin || 7),
-      image: fallbackWorkoutImage(name),
-    },
-  };
-}
-
-function buildSyntheticWeeks(input: any, metadata: any) {
-  const existingWeeks = Array.isArray(input?.weeks) ? input.weeks : [];
-  if (existingWeeks.length) return existingWeeks;
-
-  const aiPlan = metadata?.aiPlan || metadata?.plan || {};
-  const aiExercises = Array.isArray(aiPlan?.exercises) ? aiPlan.exercises : [];
-  const baseExercises = aiExercises.length
-    ? aiExercises
-    : programTemplateExercises(input?.category || metadata?.category, input?.difficulty || metadata?.level);
-
-  const durationWeeks = Math.max(1, Number(input?.durationWeeks ?? input?.duration_weeks ?? aiPlan?.durationWeeks ?? metadata?.durationWeeks ?? 1));
-  const daysPerWeek = Math.max(1, Number(input?.daysPerWeek ?? input?.days_per_week ?? aiPlan?.daysPerWeek ?? metadata?.daysPerWeek ?? 1));
-
-  return Array.from({ length: durationWeeks }).map((_, weekIndex) => ({
-    id: `${input?.id || 'program'}-week-${weekIndex + 1}`,
-    weekNumber: weekIndex + 1,
-    name: `Week ${weekIndex + 1}`,
-    description: weekIndex === 0 ? (aiPlan?.weeklyRecommendations || 'Start controlled and focus on clean form.') : 'Progress gradually while maintaining good form.',
-    days: Array.from({ length: daysPerWeek }).map((__, dayIndex) => ({
-      id: `${input?.id || 'program'}-week-${weekIndex + 1}-day-${dayIndex + 1}`,
-      dayNumber: dayIndex + 1,
-      name: daysPerWeek === 1 ? 'Workout Day' : `Day ${dayIndex + 1}`,
-      isRestDay: false,
-      exercises: baseExercises.map((ex: any, exerciseIndex: number) => exerciseItemFromPlanExercise(ex, exerciseIndex)),
-    })),
-  }));
 }
 
 export function normalizeWorkout(input: any): Workout {
@@ -387,8 +247,8 @@ export function normalizeWorkout(input: any): Workout {
   const calories = Number(input?.calories ?? input?.caloriesBurned ?? Math.max(1, Math.round(caloriesPerMin * duration)));
 
   return {
-    id: String(input?.id || input?.slug || slugify(name)),
-    slug: input?.slug || slugify(name),
+    id: String(input?.id || input?.slug || name.toLowerCase().replace(/\s+/g, '-')),
+    slug: input?.slug || input?.id,
     name,
     description: input?.description || input?.notes || 'Guided FlowFit bodyweight exercise from your protected server library.',
     image: input?.image || input?.imageUrl || input?.thumbnail || fallbackWorkoutImage(name),
@@ -404,47 +264,159 @@ export function normalizeWorkout(input: any): Workout {
   };
 }
 
-export function normalizeProgram(input: any): Program & {
-  weeks?: any[];
-  days?: any[];
-  raw?: any;
-  totalWeeks?: number;
-  totalDays?: number;
-  totalExercises?: number;
-} {
-  const metadata = parseMetadata(input);
+function parseProgramMetadata(value: any): any {
+  if (!value) return {};
+  if (typeof value === 'object') return value;
+  if (typeof value === 'string') {
+    try { return JSON.parse(value); } catch { return {}; }
+  }
+  return {};
+}
+
+function guideIdFromExerciseName(name = '', category = '') {
+  const source = String(name).toLowerCase();
+  if (source.includes('burpee')) return 'burpees';
+  if (source.includes('mountain')) return 'mountainclimbers';
+  if (source.includes('jump squat')) return 'jumpsquats';
+  if (source.includes('squat')) return 'squats';
+  if (source.includes('lunge')) return 'lunges';
+  if (source.includes('pike') && source.includes('push')) return 'pikepushups';
+  if (source.includes('push')) return 'pushups';
+  if (source.includes('dip')) return 'tricepdips';
+  if (source.includes('plank')) return 'plank';
+  if (source.includes('crunch')) return 'crunches';
+  if (source.includes('leg raise')) return 'legraises';
+  if (source.includes('russian')) return 'russiantwists';
+  if (source.includes('glute')) return 'glutebridges';
+  if (source.includes('jumping jack')) return 'jumpingjacks';
+  if (source.includes('high knee')) return 'highknees';
+  if (source.includes('butt kick')) return 'buttkicks';
+  if (source.includes('sprint')) return 'sprints';
+  if (source.includes('box')) return 'boxjumps';
+  if (source.includes('downward')) return 'downwarddog';
+  if (source.includes('child')) return 'childpose';
+  if (source.includes('hip flexor')) return 'hipflexor';
+  const cat = String(category).toLowerCase();
+  if (cat.includes('cardio') || cat.includes('hiit')) return 'burpees';
+  if (cat.includes('core')) return 'plank';
+  return 'squats';
+}
+
+function normalizeProgramExercise(item: any, index: number, categoryFallback = 'general_fitness') {
+  const lib = item?.exercise || {};
+  const name = lib.name || item?.exerciseName || item?.name || `Exercise ${index + 1}`;
+  const category = lib.category || item?.category || categoryFallback;
+  const id = lib.id || item?.exerciseId || item?.workoutId || item?.id || guideIdFromExerciseName(name, category);
+  return {
+    ...item,
+    id: String(id),
+    exerciseId: String(id),
+    guideId: item?.guideId || item?.libraryId || guideIdFromExerciseName(name, category),
+    exerciseName: item?.exerciseName || name,
+    name,
+    category,
+    sets: item?.sets ?? item?.targetSets,
+    reps: item?.reps ?? item?.targetReps,
+    restSeconds: item?.restSeconds ?? item?.rest_seconds,
+    notes: item?.notes,
+    exercise: {
+      ...lib,
+      id: String(id),
+      name,
+      category,
+      description: lib.description || item?.description || item?.notes || 'Program exercise. Use controlled form and steady breathing.',
+      caloriesPerMin: Number(lib.caloriesPerMin ?? lib.calories_per_min ?? item?.caloriesPerMin ?? 8),
+    },
+  };
+}
+
+function syntheticWeeksFromAiPlan(input: any, metadata: any, durationWeeks: number, daysPerWeek: number) {
   const aiPlan = metadata?.aiPlan || metadata?.plan || {};
-  const title = input?.title || input?.name || aiPlan?.workoutName || metadata?.title || 'Untitled Program';
+  const exercises = Array.isArray(aiPlan.exercises) ? aiPlan.exercises : [];
+  if (!exercises.length) return [];
 
-  const weeks = buildSyntheticWeeks(input, metadata);
+  return Array.from({ length: Math.max(1, durationWeeks || 1) }, (_, weekIndex) => ({
+    id: `${input?.id || 'program'}-week-${weekIndex + 1}`,
+    weekNumber: weekIndex + 1,
+    name: `Week ${weekIndex + 1}`,
+    description: aiPlan.weeklyRecommendations || aiPlan.progressionTips || undefined,
+    days: Array.from({ length: Math.max(1, daysPerWeek || 1) }, (_, dayIndex) => ({
+      id: `${input?.id || 'program'}-week-${weekIndex + 1}-day-${dayIndex + 1}`,
+      dayNumber: dayIndex + 1,
+      name: dayIndex === 0 ? (aiPlan.workoutName || input?.title || input?.name || 'Workout Day') : `Workout Day ${dayIndex + 1}`,
+      isRestDay: false,
+      exercises: exercises.map((exercise: any, exerciseIndex: number) => normalizeProgramExercise(exercise, exerciseIndex, input?.category)),
+    })),
+  }));
+}
 
-  const workoutIds: string[] = weeks.flatMap((week: any) =>
-    (week.days || []).flatMap((day: any) =>
-      (day.exercises || [])
-        .map((ex: any) => String(ex?.exercise?.id || ex?.exerciseId || ex?.id || slugify(ex?.exerciseName || ex?.name || '')))
-        .filter(Boolean),
-    ),
+function syntheticWeeksFromWorkoutIds(input: any, workoutIds: string[], durationWeeks: number, daysPerWeek: number) {
+  if (!workoutIds.length) return [];
+  return Array.from({ length: Math.max(1, durationWeeks || 1) }, (_, weekIndex) => ({
+    id: `${input?.id || 'program'}-week-${weekIndex + 1}`,
+    weekNumber: weekIndex + 1,
+    name: `Week ${weekIndex + 1}`,
+    days: Array.from({ length: Math.max(1, daysPerWeek || 1) }, (_, dayIndex) => ({
+      id: `${input?.id || 'program'}-week-${weekIndex + 1}-day-${dayIndex + 1}`,
+      dayNumber: dayIndex + 1,
+      name: `Workout Day ${dayIndex + 1}`,
+      isRestDay: false,
+      exercises: workoutIds.map((workoutId, exerciseIndex) => normalizeProgramExercise({ id: workoutId, exerciseId: workoutId }, exerciseIndex, input?.category)),
+    })),
+  }));
+}
+
+export function normalizeProgram(input: any): Program & { weeks?: any[]; days?: any[]; raw?: any; totalExercises?: number } {
+  const metadata = parseProgramMetadata(input?.metadata);
+  const title = input?.title || input?.name || metadata?.title || metadata?.aiPlan?.workoutName || 'Untitled Program';
+  const durationWeeks = Number(input?.durationWeeks ?? input?.duration_weeks ?? metadata?.durationWeeks ?? 1);
+  const daysPerWeek = Number(input?.daysPerWeek ?? input?.days_per_week ?? metadata?.daysPerWeek ?? 1);
+
+  const rawWeeks = Array.isArray(input?.weeks) ? input.weeks : [];
+  let weeks = rawWeeks.map((week: any, weekIndex: number) => ({
+    ...week,
+    weekNumber: Number(week?.weekNumber ?? week?.week_number ?? weekIndex + 1),
+    name: week?.name || week?.title || `Week ${weekIndex + 1}`,
+    days: Array.isArray(week?.days) ? week.days.map((day: any, dayIndex: number) => ({
+      ...day,
+      dayNumber: Number(day?.dayNumber ?? day?.day_number ?? dayIndex + 1),
+      name: day?.name || day?.title || `Workout Day ${dayIndex + 1}`,
+      exercises: Array.isArray(day?.exercises)
+        ? day.exercises.map((exercise: any, exerciseIndex: number) => normalizeProgramExercise(exercise, exerciseIndex, input?.category))
+        : [],
+    })) : [],
+  }));
+
+  const hasNestedExercises = weeks.some((week: any) =>
+    (week.days || []).some((day: any) => Array.isArray(day.exercises) && day.exercises.length),
   );
 
-  const totalDays = weeks.reduce((sum: number, week: any) => sum + (Array.isArray(week.days) ? week.days.length : 0), 0);
-  const totalExercises = weeks.reduce(
-    (sum: number, week: any) =>
-      sum + (week.days || []).reduce((dSum: number, day: any) => dSum + (Array.isArray(day.exercises) ? day.exercises.length : 0), 0),
-    0,
-  );
+  const inputWorkoutIds: string[] = Array.isArray(input?.workouts)
+    ? input.workouts.map((workout: any) => String(workout?.id || workout)).filter(Boolean)
+    : [];
 
-  const durationWeeks = Number(input?.durationWeeks ?? input?.duration_weeks ?? aiPlan?.durationWeeks ?? metadata?.durationWeeks ?? weeks.length ?? 1);
-  const daysPerWeek = Number(input?.daysPerWeek ?? input?.days_per_week ?? aiPlan?.daysPerWeek ?? metadata?.daysPerWeek ?? (weeks[0]?.days?.length ?? 1));
+  if (!hasNestedExercises) {
+    const aiWeeks = syntheticWeeksFromAiPlan(input, metadata, durationWeeks, daysPerWeek);
+    weeks = aiWeeks.length ? aiWeeks : syntheticWeeksFromWorkoutIds(input, inputWorkoutIds, durationWeeks, daysPerWeek);
+  }
+
+  const workoutIds: string[] = weeks.flatMap((week: any) => (week.days || []).flatMap((day: any) =>
+    (day.exercises || []).map((exercise: any) => String(exercise?.exercise?.id || exercise?.exerciseId || exercise?.id)).filter(Boolean),
+  ));
+
+  const totalExercises = weeks.reduce((total: number, week: any) =>
+    total + (week.days || []).reduce((dayTotal: number, day: any) => dayTotal + ((day.exercises || []).length), 0), 0,
+  );
 
   return {
-    id: String(input?.id || input?.slug || slugify(title)),
-    slug: input?.slug || input?.id || slugify(title),
+    id: String(input?.id || input?.slug || title.toLowerCase().replace(/\s+/g, '-')),
+    slug: input?.slug || input?.id,
     title,
     name: input?.name || title,
-    description: input?.description || metadata?.description || aiPlan?.scienceNotes || 'Structured FlowFit program from your protected server.',
-    level: input?.level || input?.difficulty || metadata?.level || aiPlan?.level || 'Beginner',
+    description: input?.description || metadata?.description || metadata?.aiPlan?.scienceNotes || 'Structured FlowFit program from your protected server.',
+    level: input?.level || input?.difficulty || metadata?.level || metadata?.aiPlan?.level || 'Beginner',
     difficulty: input?.difficulty || input?.level || metadata?.level || 'Beginner',
-    focus: input?.focus || input?.category || metadata?.focus || aiPlan?.focus || 'General fitness',
+    focus: input?.focus || input?.category || metadata?.focus || metadata?.aiPlan?.focus,
     category: input?.category || metadata?.category || 'general_fitness',
     duration: input?.duration || `${durationWeeks} week${durationWeeks === 1 ? '' : 's'} · ${daysPerWeek} day${daysPerWeek === 1 ? '' : 's'}/week`,
     durationWeeks,
@@ -453,17 +425,10 @@ export function normalizeProgram(input: any): Program & {
     workouts: workoutIds,
     weeks,
     days: input?.days,
-    totalWeeks: weeks.length,
-    totalDays,
+    totalWeeks: weeks.length || durationWeeks,
+    totalDays: weeks.reduce((total: number, week: any) => total + ((week.days || []).length), 0),
     totalExercises,
-    raw: input,
-  } as Program & {
-    weeks?: any[];
-    days?: any[];
-    raw?: any;
-    totalWeeks?: number;
-    totalDays?: number;
-    totalExercises?: number;
+    raw: { ...input, metadata },
   };
 }
 
