@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100;200;300;400;600;700&family=Lora:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Josefin+Sans:wght@100;200;300;400;600;700&family=Lora:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import '../styles/variables.css';
 
 /* ── Reset ──────────────────────────────────────────────────────────── */
@@ -1238,4 +1238,444 @@ body.sidebar-open {
   .sidebar.sidebar-open .sidebar-user-card .plan-badge { display: inline-block; }
   .dashboard-hero h1 { font-size: clamp(2rem, 10vw, 3.2rem); }
   .ff-confirm-actions { flex-direction: column; }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   FLOWFIT LANDING PAGE — PREMIUM READABILITY + BRAND PATCH
+   Applied over existing styles without removing your dashboard/sidebar CSS.
+═══════════════════════════════════════════════════════ */
+
+:root {
+  --ff-gold: #d6ad3f;
+  --ff-gold-hi: #fff1a8;
+  --ff-gold-mid: #d6ad3f;
+  --ff-gold-deep: #8f681c;
+  --ff-ink: #08070d;
+  --ff-cream: #fffaf0;
+  --ff-glass-light: rgba(255,255,255,.66);
+  --ff-glass-dark: rgba(255,255,255,.075);
+}
+
+body {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Premium navigation/logo ──────────────────────────── */
+
+.public-nav.ff-public-nav {
+  min-height: 96px;
+  padding: 1rem clamp(1.15rem, 4vw, 3rem);
+  background: var(--surface);
+  border-bottom: 1px solid rgba(214,173,63,.14);
+  backdrop-filter: blur(22px) saturate(145%);
+}
+
+.ff-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .95rem;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.ff-brand-mark {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.35), transparent 32%),
+    linear-gradient(145deg, var(--ff-gold-hi), var(--ff-gold-mid) 48%, var(--ff-gold-deep));
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -10px 24px rgba(0,0,0,.14),
+    0 16px 34px rgba(214,173,63,.34),
+    0 3px 10px rgba(0,0,0,.22);
+}
+
+.ff-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .16rem;
+  font-family: 'Cinzel', 'Josefin Sans', serif;
+  text-transform: uppercase;
+  letter-spacing: clamp(.16em, 2.4vw, .26em);
+  font-weight: 600;
+  font-size: clamp(1.18rem, 4vw, 1.75rem);
+  line-height: 1;
+  color: var(--ff-gold-mid);
+  text-shadow: 0 5px 28px rgba(214,173,63,.18);
+}
+
+.ff-wordmark strong {
+  font-weight: 700;
+  color: var(--ff-gold-hi);
+}
+
+.ff-public-links {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+}
+
+.ff-public-links a:not(.primary-btn):not(.secondary-btn) {
+  color: var(--t2);
+  transition: color .22s ease, transform .22s ease;
+}
+
+.ff-public-links a:not(.primary-btn):not(.secondary-btn):hover {
+  color: var(--ff-gold-hi);
+  transform: translateY(-1px);
+}
+
+.ff-nav-login,
+.ff-nav-start {
+  min-height: 42px;
+  padding: .72rem 1.15rem;
+  border-radius: 15px;
+}
+
+.ff-menu-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+}
+
+/* ── Landing hero section ─────────────────────────────── */
+
+.ff-home {
+  overflow: hidden;
+}
+
+.ff-landing-hero-wrap {
+  padding: clamp(1.1rem, 3vw, 2.5rem);
+}
+
+.ff-landing-hero {
+  position: relative;
+  min-height: clamp(560px, 72vh, 760px);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  overflow: hidden;
+  border-radius: clamp(30px, 5vw, 48px);
+  padding: 0;
+  border: 1px solid rgba(214,173,63,.18);
+  box-shadow:
+    0 28px 90px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.10);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.54), rgba(0,0,0,.70)),
+    var(--bg-image) center / cover no-repeat;
+}
+
+html.light-mode .ff-landing-hero {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.90)),
+    var(--bg-image) center / cover no-repeat;
+}
+
+.ff-landing-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255,241,168,.28), transparent 38%),
+    linear-gradient(90deg, rgba(0,0,0,.28), transparent 38%, rgba(0,0,0,.22)),
+    linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.45));
+}
+
+html.light-mode .ff-landing-hero::before {
+  background:
+    radial-gradient(circle at 50% 14%, rgba(214,173,63,.25), transparent 40%),
+    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.46));
+}
+
+.ff-landing-hero::after {
+  content: '';
+  position: absolute;
+  inset: clamp(10px, 2vw, 18px);
+  border-radius: inherit;
+  border: 1px solid rgba(255,241,168,.16);
+  pointer-events: none;
+}
+
+.ff-hero-content {
+  position: relative;
+  z-index: 2;
+  width: min(900px, 100%);
+  margin-inline: auto;
+  padding: clamp(1.6rem, 5vw, 4.2rem);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ff-hero-eyebrow {
+  color: var(--ff-gold-hi);
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: clamp(.14em, 2.4vw, .24em);
+  font-size: clamp(.74rem, 2vw, .98rem);
+  line-height: 1.45;
+  margin-bottom: .75rem;
+  text-align: center;
+  text-shadow: 0 2px 18px rgba(0,0,0,.55);
+}
+
+html.light-mode .ff-hero-eyebrow {
+  color: #8a6419;
+  text-shadow: none;
+}
+
+.ff-hero-title {
+  width: 100%;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 300;
+  letter-spacing: -.045em;
+  line-height: 1.03;
+  text-align: center;
+  color: var(--ff-cream);
+  font-size: clamp(3rem, 10vw, 6.9rem);
+  margin: 0 0 1.15rem;
+  text-wrap: balance;
+  text-shadow:
+    0 4px 26px rgba(0,0,0,.62),
+    0 1px 1px rgba(0,0,0,.42);
+}
+
+html.light-mode .ff-hero-title {
+  color: #111014;
+  text-shadow: 0 2px 24px rgba(255,255,255,.95);
+}
+
+.ff-hero-text {
+  max-width: 720px;
+  margin: 0 auto 2rem;
+  text-align: center;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(1.08rem, 4vw, 1.45rem);
+  font-weight: 400;
+  line-height: 1.78;
+  color: rgba(255,250,240,.94) !important;
+  text-shadow: 0 2px 18px rgba(0,0,0,.55);
+}
+
+html.light-mode .ff-hero-text {
+  color: rgba(15,15,20,.88) !important;
+  text-shadow: none;
+}
+
+.ff-hero-actions {
+  width: min(690px, 100%);
+  display: grid;
+  gap: 1rem;
+  margin-inline: auto;
+}
+
+/* ── Premium buttons ──────────────────────────────────── */
+
+.ff-premium-btn,
+.public-nav .primary-btn,
+.ff-landing-hero .primary-btn,
+.ff-final-cta .primary-btn {
+  min-height: 62px;
+  border-radius: 22px;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  background:
+    radial-gradient(circle at 30% 15%, rgba(255,255,255,.46), transparent 24%),
+    linear-gradient(135deg, var(--ff-gold-hi), var(--ff-gold-mid) 50%, var(--ff-gold-deep));
+  color: #100d05;
+  border: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -10px 20px rgba(0,0,0,.11),
+    0 18px 40px rgba(214,173,63,.38),
+    0 3px 10px rgba(0,0,0,.22);
+}
+
+.ff-premium-btn:hover,
+.public-nav .primary-btn:hover,
+.ff-landing-hero .primary-btn:hover,
+.ff-final-cta .primary-btn:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.54),
+    inset 0 -10px 20px rgba(0,0,0,.10),
+    0 26px 58px rgba(214,173,63,.50),
+    0 5px 14px rgba(0,0,0,.28);
+}
+
+.ff-glass-btn,
+.ff-landing-hero .secondary-btn {
+  min-height: 62px;
+  border-radius: 22px;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,241,168,.30);
+  color: var(--ff-cream);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.13),
+    0 12px 30px rgba(0,0,0,.18);
+}
+
+html.light-mode .ff-glass-btn,
+html.light-mode .ff-landing-hero .secondary-btn {
+  background: rgba(255,255,255,.64);
+  color: #151515;
+  border-color: rgba(142,104,28,.24);
+}
+
+/* ── Public section typography ────────────────────────── */
+
+.ff-public-section {
+  padding: clamp(2rem, 5vw, 4rem) clamp(1.15rem, 3vw, 2.5rem);
+}
+
+.ff-section-eyebrow {
+  display: block;
+  text-align: center;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  letter-spacing: clamp(.16em, 2.6vw, .26em);
+  color: var(--ff-gold-mid);
+  margin: 0 0 .9rem;
+  text-shadow: 0 2px 16px rgba(214,173,63,.12);
+}
+
+.ff-section-title {
+  text-align: center;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(2.15rem, 6vw, 4.5rem);
+  line-height: 1.05;
+  font-weight: 300;
+  letter-spacing: -.045em;
+  margin: 0 auto 2.2rem;
+  color: var(--t1);
+  text-wrap: balance;
+}
+
+.ff-final-cta {
+  text-align: center;
+  padding: clamp(2rem, 5vw, 4rem);
+  border-color: rgba(214,173,63,.20);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(214,173,63,.13), transparent 44%),
+    var(--g-card);
+}
+
+.ff-cta-text {
+  max-width: 650px;
+  margin: 0 auto 1.8rem;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.06rem;
+  line-height: 1.82;
+  text-align: center;
+}
+
+/* ── Card readability on landing page ─────────────────── */
+
+.ff-home .content-card h3,
+.ff-home .program-art-card h3 {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+.ff-home .muted {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Responsive polish ────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .public-nav.ff-public-nav {
+    min-height: 88px;
+  }
+
+  .ff-public-links.public-links-open {
+    top: 82px;
+    border-color: rgba(214,173,63,.22);
+  }
+
+  .ff-desktop-theme {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .public-nav.ff-public-nav {
+    min-height: 86px;
+    padding: .85rem 1rem;
+  }
+
+  .ff-brand {
+    gap: .75rem;
+  }
+
+  .ff-brand-mark {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+    border-radius: 16px;
+  }
+
+  .ff-wordmark {
+    font-size: 1.15rem;
+    letter-spacing: .20em;
+  }
+
+  .ff-landing-hero-wrap {
+    padding: 1rem;
+  }
+
+  .ff-landing-hero {
+    min-height: 590px;
+    border-radius: 34px;
+  }
+
+  .ff-hero-content {
+    padding: 1.55rem;
+  }
+
+  .ff-hero-title {
+    font-size: clamp(3rem, 13vw, 4.45rem);
+  }
+
+  .ff-hero-text {
+    font-size: 1.1rem;
+    line-height: 1.86;
+  }
+
+  .ff-section-title {
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .ff-wordmark {
+    letter-spacing: .16em;
+    font-size: 1rem;
+  }
+
+  .ff-brand-mark {
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+  }
+
+  .ff-menu-btn {
+    width: 48px;
+    height: 48px;
+  }
 }
