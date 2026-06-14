@@ -2,39 +2,46 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { getWorkouts } from '@/lib/api';
+import type { Workout } from '@/types/workout';
+
+const DEFAULT_TABS = ['All', 'Strength', 'Cardio', 'Core', 'HIIT', 'Mobility', 'Recovery', 'General'];
 
 export function useWorkouts() {
-  const [all, setAll] = useState<any[]>([]);
+  const [all, setAll] = useState<Workout[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
-  const [loading, setLoading] = useState(true);
-  const [serverStatus, setServerStatus] = useState<'server' | 'fallback'>('server');
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    getWorkouts()
-      .then((items) => {
-        if (!active) return;
-        setAll(Array.isArray(items) ? items : []);
-        setServerStatus('server');
-      })
-      .catch(() => {
-        if (!active) return;
-        setAll([]);
-        setServerStatus('fallback');
-      })
-      .finally(() => active && setLoading(false));
+    getWorkouts({ limit: 100 })
+      .then((data) => { if (active) setAll(Array.isArray(data) ? data : []); })
+      .catch((err) => { if (active) setError(err instanceof Error ? err.message : 'Could not load workouts'); })
+      .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
-  const categories = useMemo(() => ['All', ...Array.from(new Set(all.map((w) => w.category).filter(Boolean)))], [all]);
-  const workouts = useMemo(() => all.filter((w) => {
-    const q = query.trim().toLowerCase();
-    const matchesQuery = !q || [w.name, w.description, w.category, w.level, w.difficulty].some((v) => String(v || '').toLowerCase().includes(q));
-    const matchesCat = category === 'All' || w.category === category;
-    return matchesQuery && matchesCat;
-  }), [all, query, category]);
+  const categories = useMemo(() => {
+    const fromData = [...new Set(all.map((w) => w.category).filter(Boolean))];
+    const merged = DEFAULT_TABS.filter((tab) => tab === 'All' || fromData.includes(tab));
+    fromData.forEach((cat) => { if (!merged.includes(cat)) merged.push(cat); });
+    return merged;
+  }, [all]);
 
-  return { workouts, allWorkouts: all, categories, query, setQuery, category, setCategory, loading, serverStatus };
+  const workouts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return all.filter((workout) => {
+      const matchesQuery = !q ||
+        workout.name.toLowerCase().includes(q) ||
+        workout.description.toLowerCase().includes(q) ||
+        workout.category.toLowerCase().includes(q) ||
+        (workout.muscles || []).some((m) => m.toLowerCase().includes(q));
+      const matchesCategory = category === 'All' || workout.category === category;
+      return matchesQuery && matchesCategory;
+    });
+  }, [all, query, category]);
+
+  return { workouts, allWorkouts: all, categories, query, setQuery, category, setCategory, loading, error };
 }
