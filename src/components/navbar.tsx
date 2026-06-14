@@ -8,47 +8,80 @@ import ThemeToggle from '@/components/ThemeToggle';
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
+  function closeMenu() {
+    setOpen(false);
+  }
+
   return (
-    <nav className="public-nav">
-      {/* Brand */}
-      <Link href="/" className="brand public-brand" onClick={() => setOpen(false)}>
-        <span className="brand-mark">
-          <svg width="20" height="20" viewBox="0 0 38 38" fill="none">
+    <nav className="public-nav ff-public-nav">
+      <Link href="/" className="ff-brand" onClick={closeMenu} aria-label="FlowFit home">
+        <span className="ff-brand-mark" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 44 44" fill="none">
             <defs>
-              <linearGradient id="navPulse" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#E8C96A" />
-                <stop offset="55%" stopColor="#C9A84C" />
-                <stop offset="100%" stopColor="#8E6E28" />
+              <linearGradient id="ffNavGold" x1="4" y1="2" x2="40" y2="42" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#fff1a8" />
+                <stop offset="42%" stopColor="#d6ad3f" />
+                <stop offset="100%" stopColor="#8f681c" />
               </linearGradient>
+              <filter id="ffNavGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                <feColorMatrix
+                  in="blur"
+                  type="matrix"
+                  values="1 0 0 0 0.9  0 1 0 0 0.68  0 0 1 0 0.18  0 0 0 0.45 0"
+                />
+                <feBlend in="SourceGraphic" />
+              </filter>
             </defs>
-            <polyline
-              points="2,19 8,19 11,9 14,27 17,13 20,22 23,19 36,19"
-              stroke="url(#navPulse)"
+            <rect x="4" y="4" width="36" height="36" rx="12" fill="url(#ffNavGold)" opacity="0.16" />
+            <path
+              d="M7 23H14.3L17.2 14L21.5 31L25.3 19L28.5 23H37"
+              stroke="url(#ffNavGold)"
               strokeWidth="2.8"
               strokeLinecap="round"
               strokeLinejoin="round"
-              fill="none"
+              filter="url(#ffNavGlow)"
             />
+            <circle cx="22" cy="22" r="18" stroke="url(#ffNavGold)" strokeOpacity="0.28" />
           </svg>
         </span>
-        <span className="brand-text">FlowFit</span>
+
+        <span className="ff-wordmark">
+          <span>Flow</span>
+          <strong>Fit</strong>
+        </span>
       </Link>
 
-      {/* Desktop links */}
-      <div className={`public-links ${open ? 'public-links-open' : ''}`}>
-        <Link href="/workouts" onClick={() => setOpen(false)}>Workouts</Link>
-        <Link href="/programs" onClick={() => setOpen(false)}>Programs</Link>
-        <Link href="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
-        <ThemeToggle />
-        <Link href="/auth/login" className="secondary-btn nav-cta" onClick={() => setOpen(false)}>Login</Link>
-        <Link href="/auth/register" className="primary-btn nav-cta" onClick={() => setOpen(false)}>Start Free</Link>
+      <div className={`public-links ff-public-links ${open ? 'public-links-open' : ''}`}>
+        <Link href="/workouts" onClick={closeMenu}>Workouts</Link>
+        <Link href="/programs" onClick={closeMenu}>Programs</Link>
+        <Link href="/dashboard" onClick={closeMenu}>Dashboard</Link>
+        <Link href="/about" onClick={closeMenu}>About</Link>
+        <Link href="/contact" onClick={closeMenu}>Contact</Link>
+
+        <div className="ff-desktop-theme">
+          <ThemeToggle />
+        </div>
+
+        <Link href="/auth/login" className="secondary-btn nav-cta ff-nav-login" onClick={closeMenu}>
+          Login
+        </Link>
+
+        <Link href="/auth/register" className="primary-btn nav-cta ff-nav-start" onClick={closeMenu}>
+          Start Free
+        </Link>
       </div>
 
-      {/* Mobile right controls */}
       <div className="public-nav-actions">
         <ThemeToggle />
-        <button className="icon-btn" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
-          {open ? <X size={18} /> : <Menu size={18} />}
+        <button
+          type="button"
+          className="icon-btn ff-menu-btn"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
+        >
+          {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
     </nav>
