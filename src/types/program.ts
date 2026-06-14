@@ -1,13 +1,30 @@
 export type Program = {
   id: string;
   slug?: string;
+
   title: string;
+  name?: string;
+
   description: string;
-  level: string;
+
+  level?: string;
+  difficulty?: string;
+
   focus?: string;
-  duration: string;
-  image: string;
-  workouts: string[];
+  category?: string;
+
+  duration?: string;
+  durationWeeks?: number;
+  daysPerWeek?: number;
+
+  image?: string;
+
+  workouts?: string[];
+
+  totalWeeks?: number;
+  totalDays?: number;
+  totalExercises?: number;
+
   weeks?: Array<{
     id?: string;
     weekNumber?: number;
@@ -21,5 +38,6 @@ export type Program = {
       exercises?: Array<any>;
     }>;
   }>;
+
   raw?: any;
 };
