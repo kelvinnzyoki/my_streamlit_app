@@ -28,6 +28,13 @@ type Enrollment = {
   currentDay?: number;
   progress?: number;
   isActive?: boolean;
+
+  // Backend compatibility: some responses may still use snake_case keys.
+  completed_days?: number;
+  current_week?: number;
+  current_day?: number;
+  is_active?: boolean;
+
   program?: { id?: string };
 };
 
