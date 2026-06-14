@@ -1,54 +1,65 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import ProgramCard from '@/components/programCard';
 import { getPrograms } from '@/lib/api';
-
-function normalizeProgram(p: any) {
-  return {
-    ...p,
-    id: p?.id || p?.slug || p?.name,
-    title: p?.title || p?.name || 'Untitled Program',
-    name: p?.name || p?.title || 'Untitled Program',
-    level: p?.level || p?.difficulty || 'intermediate',
-    duration: p?.duration || (p?.durationWeeks ? `${p.durationWeeks} week${p.durationWeeks === 1 ? '' : 's'}` : 'Flexible'),
-    workouts: Array.isArray(p?.workouts) ? p.workouts : [],
-    image: p?.image || '/images/fit.webp',
-  };
-}
+import type { Program } from '@/types/program';
 
 export default function ProgramsPage() {
-  const [programs, setPrograms] = useState<any[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    getPrograms()
-      .then((items) => setPrograms((Array.isArray(items) ? items : []).map(normalizeProgram)))
-      .catch(() => setPrograms([]))
-      .finally(() => setLoading(false));
+    let active = true;
+    getPrograms({ limit: 100 })
+      .then((data) => { if (active) setPrograms(Array.isArray(data) ? data : []); })
+      .catch((err) => { if (active) setError(err instanceof Error ? err.message : 'Could not load programs'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
-  const levels = useMemo(() => ['All', ...Array.from(new Set(programs.map((p) => p.level).filter(Boolean)))], [programs]);
+  const levels = useMemo(() => {
+    const unique = [...new Set(programs.map((p) => p.level).filter(Boolean))];
+    return ['All', ...unique];
+  }, [programs]);
+
   const filtered = filter === 'All' ? programs : programs.filter((p) => p.level === filter);
 
   return (
     <DashboardShell>
-      <section className="page-section">
-        <p className="eyebrow">Protected Programs</p>
-        <h1>Structured Training Plans</h1>
-        <p className="muted" style={{ marginBottom: '1.5rem', maxWidth: 620 }}>
-          Programs are loaded from the FlowFit server first. If the server is offline, frontend fallback programs are used.
-        </p>
-
-        <div className="filter-tabs">
-          {levels.map((l) => <button key={l} className={`tab-btn ${filter === l ? 'active' : ''}`} onClick={() => setFilter(l)}>{l}</button>)}
+      <section className="page-section programs-page">
+        <div className="compact-hero premium-card">
+          <div>
+            <p className="eyebrow">Programs</p>
+            <h1>Structured Training Plans</h1>
+            <p className="muted" style={{ maxWidth: 760 }}>
+              Server-backed FlowFit programs with enrollment, AI program support, quota protection, and local fallback when the API is offline.
+            </p>
+          </div>
+          <div className="pill-row"><span className="pill"><Sparkles size={14} /> {programs.length} plans</span></div>
         </div>
 
-        {loading ? <div className="grid grid-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="premium-card" style={{ height: 340, opacity: 0.35 }} />)}</div>
-          : filtered.length === 0 ? <div className="premium-card" style={{ textAlign: 'center', padding: '3rem' }}><p className="muted">No programs found.</p></div>
-          : <div className="grid grid-3">{filtered.map((p) => <ProgramCard key={p.id} program={p} />)}</div>}
+        <div className="filter-tabs" style={{ marginTop: '1.5rem' }}>
+          {levels.map((level) => (
+            <button key={level} className={`tab-btn ${filter === level ? 'active' : ''}`} onClick={() => setFilter(level)}>
+              {level}
+            </button>
+          ))}
+        </div>
+
+        {error && <div className="alert">{error}</div>}
+
+        {loading ? (
+          <div className="grid grid-3">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="premium-card" style={{ height: 340, opacity: 0.35 }} />)}</div>
+        ) : filtered.length === 0 ? (
+          <div className="premium-card" style={{ textAlign: 'center', padding: '3rem' }}><p className="muted">No programs found.</p></div>
+        ) : (
+          <div className="grid grid-3">{filtered.map((program) => <ProgramCard key={program.id} program={program} />)}</div>
+        )}
       </section>
     </DashboardShell>
   );
