@@ -1,43 +1,38 @@
 export type Program = {
   id: string;
   slug?: string;
-
   title: string;
   name?: string;
-
   description: string;
-
   level?: string;
   difficulty?: string;
-
   focus?: string;
   category?: string;
-
   duration?: string;
   durationWeeks?: number;
   daysPerWeek?: number;
-
   image?: string;
-
   workouts?: string[];
-
   totalWeeks?: number;
   totalDays?: number;
   totalExercises?: number;
-
   weeks?: Array<{
     id?: string;
     weekNumber?: number;
+    week_number?: number;
     name?: string;
+    title?: string;
     description?: string;
     days?: Array<{
       id?: string;
       dayNumber?: number;
+      day_number?: number;
       name?: string;
+      title?: string;
       isRestDay?: boolean;
       exercises?: Array<any>;
     }>;
   }>;
-
+  days?: Array<any>;
   raw?: any;
 };
