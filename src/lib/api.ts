@@ -1,10 +1,9 @@
 import { programs as FALLBACK_PROGRAMS } from '@/data/programs';
 import { workouts as FALLBACK_WORKOUTS } from '@/data/workouts';
+import type { Program } from '@/types/program';
+import type { Workout } from '@/types/workout';
 
-const RAW_API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'https://fit.cctamcc.site/api/v1';
-
+const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://fit.cctamcc.site/api/v1';
 export const API_BASE = RAW_API_BASE.replace(/\/$/, '');
 
 export type ApiEnvelope<T = unknown> = {
@@ -13,425 +12,712 @@ export type ApiEnvelope<T = unknown> = {
   user?: T;
   message?: string;
   error?: string;
+  code?: string;
+  meta?: unknown;
   [key: string]: unknown;
 };
 
 export class ApiError extends Error {
   status: number;
   payload?: unknown;
+  code?: string;
 
-  constructor(message: string, status = 0, payload?: unknown) {
+  constructor(message: string, status = 0, payload?: unknown, code?: string) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.payload = payload;
+    this.code = code;
   }
 }
 
-function getStoredToken() {
-  if (typeof window === 'undefined') return '';
+/* ─────────────────────────────────────────────────────────────
+   Ported from old api.js:
+   - Access token is in memory only.
+   - Refresh/auth cookies are sent with credentials:'include'.
+   - ff_session cookie triggers silent refresh after reload.
+   - Concurrent refreshes are deduplicated.
+───────────────────────────────────────────────────────────── */
 
+const TokenManager = {
+  _accessToken: null as string | null,
+
+  getAccessToken() {
+    return this._accessToken;
+  },
+
+  setTokens(accessToken?: string | null) {
+    this._accessToken = accessToken || null;
+  },
+
+  clearTokens() {
+    this._accessToken = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+      try { sessionStorage.clear(); } catch {}
+    }
+  },
+
+  hasSession() {
+    if (typeof document === 'undefined') return false;
+    try {
+      return document.cookie.split(';').some((c) => c.trim().startsWith('ff_session='));
+    } catch {
+      return false;
+    }
+  },
+
+  getUser<T = any>(): T | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      const user = localStorage.getItem('user');
+      return user ? JSON.parse(user) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  setUser(user: unknown) {
+    if (typeof window === 'undefined' || !user) return;
+    try { localStorage.setItem('user', JSON.stringify(user)); } catch {}
+  },
+};
+
+export const FlowFitTokenManager = TokenManager;
+
+function extractToken(payload: any): string | undefined {
   return (
-    localStorage.getItem('flowfit_access_token') ||
-    sessionStorage.getItem('flowfit_access_token') ||
-    ''
+    payload?.accessToken ||
+    payload?.token ||
+    payload?.data?.accessToken ||
+    payload?.data?.token
   );
 }
 
-function setStoredToken(token?: string) {
-  if (typeof window === 'undefined' || !token) return;
-
-  localStorage.setItem('flowfit_access_token', token);
-  sessionStorage.setItem('flowfit_access_token', token);
+function extractUser(payload: any): any {
+  return payload?.user || payload?.data?.user || payload?.data || payload;
 }
 
-function clearStoredToken() {
-  if (typeof window === 'undefined') return;
-
-  localStorage.removeItem('flowfit_access_token');
-  sessionStorage.removeItem('flowfit_access_token');
+function readJsonText(text: string) {
+  try { return text ? JSON.parse(text) : {}; } catch { return {}; }
 }
 
-function extractToken(result: any) {
-  return (
-    result?.accessToken ||
-    result?.token ||
-    result?.data?.accessToken ||
-    result?.data?.token
-  );
+let refreshInFlight: Promise<boolean> | null = null;
+let lastResetToken = '';
+
+export async function refreshAccessToken(): Promise<boolean> {
+  if (refreshInFlight) return refreshInFlight;
+
+  refreshInFlight = (async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) return false;
+      const data = await response.json().catch(() => ({}));
+      const token = extractToken(data);
+      if (token) {
+        TokenManager.setTokens(token);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
 }
 
-function unwrap<T>(payload: ApiEnvelope<T> | T): T {
-  if (payload && typeof payload === 'object') {
-    const obj = payload as ApiEnvelope<T>;
+export async function apiRequest<T = any>(
+  endpoint: string,
+  options: RequestInit = {},
+  retry = true,
+): Promise<T> {
+  const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const headers = new Headers(options.headers || {});
+  const token = TokenManager.getAccessToken();
 
-    if ('data' in obj) return obj.data as T;
-    if ('user' in obj) return obj.user as T;
+  if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
+  if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
+
+  const config: RequestInit = {
+    credentials: 'include',
+    cache: 'no-store',
+    ...options,
+    headers,
+  };
+
+  let response: Response;
+  try {
+    response = await fetch(url, config);
+  } catch {
+    throw new ApiError('Network error. Check your connection.', 0);
+  }
+
+  if (response.status === 401 && retry) {
+    let body: any = {};
+    try { body = await response.clone().json(); } catch {}
+
+    if (body?.code === 'TOKEN_EXPIRED' || TokenManager.hasSession()) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) return apiRequest<T>(endpoint, options, false);
+    }
+
+    TokenManager.clearTokens();
+    throw new ApiError(
+      body?.error || body?.message || 'Session expired. Please log in again.',
+      401,
+      body,
+      body?.code,
+    );
+  }
+
+  const text = await response.text();
+  const payload = readJsonText(text);
+
+  if (!response.ok) {
+    throw new ApiError(
+      payload?.error || payload?.message || `Request failed (${response.status})`,
+      response.status,
+      payload,
+      payload?.code,
+    );
   }
 
   return payload as T;
 }
 
-async function refreshAccessToken(): Promise<boolean> {
-  try {
-    const res = await fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+function asArray(payload: any, keys: string[] = []): any[] {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== 'object') return [];
 
-    if (!res.ok) return false;
-
-    const json = await res.json().catch(() => ({}));
-    const token = extractToken(json);
-
-    if (token) setStoredToken(token);
-
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export async function apiRequest<T>(
-  path: string,
-  init: RequestInit = {},
-  retry = true,
-): Promise<T> {
-  const token = getStoredToken();
-  const headers = new Headers(init.headers || {});
-
-  if (!headers.has('Content-Type') && init.body) {
-    headers.set('Content-Type', 'application/json');
+  for (const key of keys) {
+    if (Array.isArray(payload[key])) return payload[key];
   }
 
-  if (token && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
-
-  const res = await fetch(
-    `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`,
-    {
-      ...init,
-      credentials: 'include',
-      headers,
-    },
-  );
-
-  if (res.status === 401 && retry) {
-    const refreshed = await refreshAccessToken();
-
-    if (refreshed) {
-      return apiRequest<T>(path, init, false);
+  if (payload.data) {
+    if (Array.isArray(payload.data)) return payload.data;
+    if (typeof payload.data === 'object') {
+      for (const key of keys) {
+        if (Array.isArray(payload.data[key])) return payload.data[key];
+      }
     }
-
-    clearStoredToken();
-
-    throw new ApiError(
-      'Your session has expired. Please login again.',
-      401,
-    );
   }
 
-  const contentType = res.headers.get('content-type') || '';
-
-  const payload = contentType.includes('application/json')
-    ? await res.json().catch(() => ({}))
-    : await res.text().catch(() => '');
-
-  if (!res.ok) {
-    const msg =
-      typeof payload === 'object'
-        ? (payload as any).message ||
-          (payload as any).error ||
-          `Request failed with ${res.status}`
-        : `Request failed with ${res.status}`;
-
-    throw new ApiError(msg, res.status, payload);
-  }
-
-  return unwrap<T>(payload as ApiEnvelope<T> | T);
+  return [];
 }
 
-async function serverFirst<T>(
-  path: string,
-  fallback: T,
-  init?: RequestInit,
-): Promise<T> {
-  try {
-    return await apiRequest<T>(path, init);
-  } catch (error) {
-    console.warn(
-      `[FlowFit] Server unavailable for ${path}. Using frontend fallback.`,
-      error,
-    );
+function firstData(payload: any): any {
+  return payload?.data ?? payload?.program ?? payload?.exercise ?? payload?.user ?? payload;
+}
 
+function toQueryString(params: Record<string, unknown> = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      query.set(key, String(value));
+    }
+  });
+  const stringified = query.toString();
+  return stringified ? `?${stringified}` : '';
+}
+
+function fallbackWorkoutImage(name = '') {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const known = [
+    'boxjumps','burpees','buttkicks','childpose','crunches','downwarddog','glutebridges',
+    'highknees','hipflexor','jumpingjacks','jumpsquats','legraises','lunges','mountainclimbers',
+    'pikepushups','plank','pushups','russiantwists','sprints','squats','tricepdips',
+  ];
+  const match = known.find((k) => slug.includes(k));
+  return match ? `${match}.webp` : 'fit.webp';
+}
+
+export function normalizeWorkout(input: any): Workout {
+  const name = input?.name || input?.title || input?.exerciseName || 'Untitled Exercise';
+  const caloriesPerMin = Number(input?.caloriesPerMin ?? input?.calories_per_min ?? 7);
+  const duration = Number(input?.duration ?? input?.minutes ?? input?.estimatedDuration ?? 10);
+  const calories = Number(input?.calories ?? input?.caloriesBurned ?? Math.max(1, Math.round(caloriesPerMin * duration)));
+
+  return {
+    id: String(input?.id || input?.slug || name.toLowerCase().replace(/\s+/g, '-')),
+    slug: input?.slug || input?.id,
+    name,
+    description: input?.description || input?.notes || 'Guided FlowFit bodyweight exercise from your protected server library.',
+    image: input?.image || input?.imageUrl || input?.thumbnail || fallbackWorkoutImage(name),
+    altImage: input?.altImage || input?.imageAlt,
+    category: input?.category || 'General',
+    level: input?.level || input?.difficulty || 'Beginner',
+    difficulty: input?.difficulty || input?.level || 'Beginner',
+    duration,
+    calories,
+    muscles: input?.muscles || input?.targetMuscles || [],
+    instructions: input?.instructions || input?.steps || [],
+    equipment: input?.equipment || 'Bodyweight',
+  };
+}
+
+export function normalizeProgram(input: any): Program & { weeks?: any[]; days?: any[]; raw?: any } {
+  const metadata = input?.metadata && typeof input.metadata === 'object' ? input.metadata : {};
+  const title = input?.title || input?.name || metadata?.title || 'Untitled Program';
+  const weeks = Array.isArray(input?.weeks) ? input.weeks : [];
+  const workoutIds: string[] = Array.isArray(input?.workouts)
+    ? input.workouts.map((w: any) => String(w?.id || w))
+    : weeks.flatMap((week: any) => (week.days || []).flatMap((day: any) =>
+        (day.exercises || []).map((ex: any) => String(ex?.exercise?.id || ex?.exerciseId || ex?.id)).filter(Boolean),
+      ));
+
+  const durationWeeks = Number(input?.durationWeeks ?? input?.duration_weeks ?? metadata?.durationWeeks ?? 1);
+  const daysPerWeek = Number(input?.daysPerWeek ?? input?.days_per_week ?? metadata?.daysPerWeek ?? 1);
+
+  return {
+    id: String(input?.id || input?.slug || title.toLowerCase().replace(/\s+/g, '-')),
+    slug: input?.slug || input?.id,
+    title,
+    description: input?.description || metadata?.description || 'Structured FlowFit program from your protected server.',
+    level: input?.level || input?.difficulty || metadata?.level || 'Beginner',
+    focus: input?.focus || input?.category || metadata?.focus,
+    duration: input?.duration || `${durationWeeks} week${durationWeeks === 1 ? '' : 's'} · ${daysPerWeek} day${daysPerWeek === 1 ? '' : 's'}/week`,
+    image: input?.image || input?.imageUrl || metadata?.image || 'fit1.webp',
+    workouts: workoutIds,
+    weeks,
+    days: input?.days,
+    raw: input,
+  };
+}
+
+async function serverFirstArray<T>(path: string, fallback: T[], keys: string[], normalizer: (item: any) => T): Promise<T[]> {
+  try {
+    const response = await apiRequest<any>(path);
+    const items = asArray(response, keys).map(normalizer);
+    return items.length ? items : fallback;
+  } catch (error) {
+    console.warn(`[FlowFit] Server unavailable for ${path}. Using frontend fallback.`, error);
     return fallback;
   }
 }
 
-/* ───────────────────────────────
-   Auth
-─────────────────────────────── */
+let workoutsBasePath: '/workouts' | '/exercises' | null = null;
+async function resolveWorkoutsPath() {
+  if (workoutsBasePath) return workoutsBasePath;
+  try {
+    const response = await fetch(`${API_BASE}/workouts?limit=1`, {
+      credentials: 'include',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(TokenManager.getAccessToken() ? { Authorization: `Bearer ${TokenManager.getAccessToken()}` } : {}),
+      },
+    });
+    if (response.status !== 404) {
+      workoutsBasePath = '/workouts';
+      return workoutsBasePath;
+    }
+  } catch {}
+  workoutsBasePath = '/exercises';
+  return workoutsBasePath;
+}
+
+/* ───────────────────── Auth ───────────────────── */
 
 export const AuthAPI = {
-  async register(body: {
-    name: string;
-    email: string;
-    password: string;
-  }) {
+  async checkSession() {
+    try {
+      const response = await fetch(`${API_BASE}/auth/session`, { credentials: 'include', cache: 'no-store' });
+      if (!response.ok) return false;
+      const data = await response.json().catch(() => ({}));
+      return data?.valid === true;
+    } catch {
+      return false;
+    }
+  },
+
+  async register(body: { name: string; email: string; password: string }) {
     const result = await apiRequest<any>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-
     const token = extractToken(result);
-    if (token) setStoredToken(token);
-
+    if (token) TokenManager.setTokens(token);
+    const user = extractUser(result);
+    if (user) TokenManager.setUser(user);
     return result;
   },
 
-  async login(body: {
-    email: string;
-    password: string;
-  }) {
+  async login(bodyOrEmail: { email: string; password: string } | string, maybePassword?: string) {
+    const body = typeof bodyOrEmail === 'string'
+      ? { email: bodyOrEmail, password: String(maybePassword || '') }
+      : bodyOrEmail;
+
     const result = await apiRequest<any>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-
     const token = extractToken(result);
-    if (token) setStoredToken(token);
+    if (token) TokenManager.setTokens(token);
+
+    try {
+      const me = await AuthAPI.getCurrentUser();
+      const user = extractUser(me);
+      if (user) TokenManager.setUser(user);
+    } catch {
+      const user = extractUser(result);
+      if (user) TokenManager.setUser(user);
+    }
 
     return result;
   },
 
   async logout() {
+    TokenManager.clearTokens();
     try {
-      await apiRequest(
-        '/auth/logout',
-        {
-          method: 'POST',
-        },
-        false,
-      );
-    } finally {
-      clearStoredToken();
-    }
+      await apiRequest('/auth/logout', { method: 'POST' }, false);
+    } catch {}
   },
 
-  async me() {
-    return apiRequest<any>('/users/me');
-  },
-
-  async refresh() {
-    return refreshAccessToken();
-  },
+  async me() { return AuthAPI.getCurrentUser(); },
+  async getCurrentUser() { return apiRequest<any>('/auth/me'); },
+  async refresh() { return refreshAccessToken(); },
 
   async checkEmail(email: string) {
-    return apiRequest<{ available: boolean }>(
-      `/auth/check-email?email=${encodeURIComponent(email)}`,
-    );
+    return apiRequest<{ available: boolean }>(`/auth/check-email?email=${encodeURIComponent(email)}`);
   },
 
   async verifyEmail(email: string, code: string) {
     const result = await apiRequest<any>('/auth/verify-email', {
       method: 'POST',
-      body: JSON.stringify({
-        email,
-        code,
-      }),
+      body: JSON.stringify({ email, code, purpose: 'registration' }),
     });
-
     const token = extractToken(result);
-    if (token) setStoredToken(token);
-
+    if (token) TokenManager.setTokens(token);
+    const user = extractUser(result);
+    if (user) TokenManager.setUser(user);
     return result;
   },
 
   async forgotPassword(email: string) {
     return apiRequest<any>('/auth/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({
-        email,
-      }),
+      body: JSON.stringify({ email }),
     });
   },
 
   async verifyResetOtp(email: string, code: string) {
-    return apiRequest<any>('/auth/verify-reset-otp', {
+    const result = await apiRequest<any>('/auth/verify-reset-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp: code, code }),
+    });
+    lastResetToken = String(result?.resetToken || result?.data?.resetToken || '');
+    return result;
+  },
+
+  async resetPassword(email: string, codeOrResetToken: string, password: string) {
+    const resetToken = lastResetToken || codeOrResetToken;
+    const result = await apiRequest<any>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, resetToken }),
+    });
+    lastResetToken = '';
+    TokenManager.clearTokens();
+    return result;
+  },
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    return apiRequest<any>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  },
+
+  clearStoredToken: TokenManager.clearTokens.bind(TokenManager),
+};
+
+/* ───────────────────── Workouts ───────────────────── */
+
+export const WorkoutsAPI = {
+  async getExercises(filters: Record<string, unknown> = {}) {
+    const base = await resolveWorkoutsPath();
+    const response = await apiRequest<any>(`${base}${toQueryString(filters)}`);
+    const data = asArray(response, ['exercises', 'workouts', 'items', 'results']).map(normalizeWorkout);
+    return { ...response, success: response?.success !== false, data };
+  },
+
+  async searchExercises(query: string) {
+    const base = await resolveWorkoutsPath();
+    const response = await apiRequest<any>(`${base}/search?q=${encodeURIComponent(query)}`);
+    const data = asArray(response, ['exercises', 'workouts', 'items', 'results']).map(normalizeWorkout);
+    return { ...response, success: response?.success !== false, data };
+  },
+
+  async getExerciseById(id: string) {
+    const base = await resolveWorkoutsPath();
+    const response = await apiRequest<any>(`${base}/${encodeURIComponent(id)}`);
+    return { ...response, success: response?.success !== false, data: normalizeWorkout(firstData(response)) };
+  },
+};
+
+export async function getWorkouts(filters: Record<string, unknown> = {}) {
+  const fallback = (FALLBACK_WORKOUTS as any[]).map(normalizeWorkout);
+  try {
+    const res = await WorkoutsAPI.getExercises({ limit: 100, ...filters });
+    return res.data.length ? res.data : fallback;
+  } catch (error) {
+    console.warn('[FlowFit] Workouts server failed. Using fallback.', error);
+    return fallback;
+  }
+}
+
+export async function getWorkoutById(id: string) {
+  try {
+    const res = await WorkoutsAPI.getExerciseById(id);
+    return res.data;
+  } catch {
+    return (FALLBACK_WORKOUTS as any[]).map(normalizeWorkout).find((w) => w.id === id || w.slug === id) || null;
+  }
+}
+
+/* ───────────────────── Programs ───────────────────── */
+
+export const ProgramsAPI = {
+  async getPrograms(filters: Record<string, unknown> = {}) {
+    const response = await apiRequest<any>(`/programs${toQueryString(filters)}`);
+    const data = asArray(response, ['programs', 'items', 'results', 'records']).map(normalizeProgram);
+    return { ...response, success: response?.success !== false, data };
+  },
+
+  async getProgramById(id: string) {
+    const response = await apiRequest<any>(`/programs/${encodeURIComponent(id)}`);
+    return { ...response, success: response?.success !== false, data: normalizeProgram(firstData(response)) };
+  },
+
+  async enrollInProgram(programId: string) {
+    return apiRequest<any>(`/programs/${encodeURIComponent(programId)}/enroll`, { method: 'POST' });
+  },
+
+  async restartProgram(programId: string) {
+    return ProgramsAPI.enrollInProgram(programId);
+  },
+
+  async getUserPrograms() {
+    const response = await apiRequest<any>('/programs/my-enrollments');
+    return {
+      ...response,
+      success: response?.success !== false,
+      data: asArray(response, ['enrollments', 'programEnrollments', 'items', 'results', 'records']),
+    };
+  },
+
+  async cancelEnrollment(enrollmentId: string) {
+    return apiRequest<any>(`/programs/enrollments/${encodeURIComponent(enrollmentId)}`, { method: 'DELETE' });
+  },
+
+  async updateProgress(enrollmentId: string, data: any) {
+    return apiRequest<any>(`/programs/enrollments/${encodeURIComponent(enrollmentId)}/progress`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getAiProgram() { return apiRequest<any>('/programs/ai-generated'); },
+  async saveAiProgram(payload: any) {
+    return apiRequest<any>('/programs', {
+      method: 'POST',
+      body: JSON.stringify({ ...payload, type: 'ai_generated' }),
+    });
+  },
+};
+
+export async function getPrograms(filters: Record<string, unknown> = {}) {
+  const fallback = (FALLBACK_PROGRAMS as any[]).map(normalizeProgram);
+  try {
+    const res = await ProgramsAPI.getPrograms({ limit: 100, ...filters });
+    return res.data.length ? res.data : fallback;
+  } catch (error) {
+    console.warn('[FlowFit] Programs server failed. Using fallback.', error);
+    return fallback;
+  }
+}
+
+export async function getProgramById(id: string) {
+  try {
+    const res = await ProgramsAPI.getProgramById(id);
+    return res.data;
+  } catch {
+    return (FALLBACK_PROGRAMS as any[]).map(normalizeProgram).find((p) => p.id === id || p.slug === id) || null;
+  }
+}
+
+export const generateWorkoutPlan = (body: any) => apiRequest<any>('/ai/generate-workout-plan', {
+  method: 'POST',
+  body: JSON.stringify(body),
+}).catch(() => apiRequest<any>('/programs', { method: 'POST', body: JSON.stringify({ ...body, type: 'ai_generated' }) }));
+
+export const saveAiProgram = ProgramsAPI.saveAiProgram;
+
+/* ───────────────────── Progress ───────────────────── */
+
+export const ProgressAPI = {
+  async logWorkout(workoutData: any) {
+    const setsArray = Array.isArray(workoutData?.sets) ? workoutData.sets : [];
+    const totalReps = setsArray.reduce((sum: number, set: any) => sum + (Number(set?.reps) || 0), 0);
+    const completedSets = setsArray.filter((set: any) => set?.done || set?.reps).length;
+
+    const exerciseId = workoutData.exerciseId || workoutData.workoutId || workoutData.workoutSlug || workoutData.id;
+
+    return apiRequest<any>('/progress', {
       method: 'POST',
       body: JSON.stringify({
-        email,
-        code,
+        exerciseId,
+        exerciseName: workoutData.name,
+        category: workoutData.category,
+        duration: Math.max(1, parseInt(String(workoutData.duration || 1), 10)),
+        sets: workoutData.setsCount ?? workoutData.setsTotal ?? completedSets || undefined,
+        reps: workoutData.reps ?? totalReps || undefined,
+        caloriesBurned: workoutData.caloriesBurned ?? workoutData.calories ?? undefined,
+        heartRate: workoutData.heartRate || undefined,
+        difficulty: workoutData.difficulty,
+        notes: workoutData.notes,
+        bodyWeight: workoutData.bodyWeight || undefined,
       }),
     });
   },
 
-  async resetPassword(
-    email: string,
-    code: string,
-    password: string,
-  ) {
-    return apiRequest<any>('/auth/reset-password', {
-      method: 'POST',
-      body: JSON.stringify({
-        email,
-        code,
-        password,
-      }),
-    });
+  getUserProgress: () => apiRequest<any>('/progress/me'),
+  getStats: (period = '30d') => apiRequest<any>(`/progress/stats?period=${encodeURIComponent(period)}`),
+  getWorkoutHistory: (limit = 20) => apiRequest<any>(`/progress/history?limit=${limit}`),
+  getStreaks: () => apiRequest<any>('/progress/streaks'),
+  getAchievements: () => apiRequest<any>('/progress/achievements'),
+  recalculateAchievements: () => apiRequest<any>('/progress/achievements/recalculate', { method: 'POST' }),
+};
+
+export const logWorkout = ProgressAPI.logWorkout;
+
+export async function getDashboard() {
+  try {
+    const [stats, streaks, history] = await Promise.all([
+      ProgressAPI.getStats('30d').catch(() => null),
+      ProgressAPI.getStreaks().catch(() => null),
+      ProgressAPI.getWorkoutHistory(7).catch(() => null),
+    ]);
+    return {
+      stats: firstData(stats)?.stats || firstData(stats) || {},
+      streak: firstData(streaks),
+      recentWorkouts: asArray(history, ['history', 'logs', 'workouts', 'items']),
+    };
+  } catch {
+    return {};
+  }
+}
+
+export async function getProgress(period = '7d') {
+  try {
+    const [stats, history] = await Promise.all([
+      ProgressAPI.getStats(period).catch(() => null),
+      ProgressAPI.getWorkoutHistory(period === '7d' ? 7 : period === '90d' ? 90 : 30).catch(() => null),
+    ]);
+    const statData = firstData(stats)?.stats || firstData(stats) || {};
+    const logs = asArray(history, ['history', 'logs', 'workouts', 'items']);
+    return {
+      summary: {
+        workouts: statData.totalWorkouts ?? statData.workouts ?? logs.length,
+        calories: statData.totalCalories ?? statData.calories ?? 0,
+        streak: statData.currentStreak ?? statData.streak ?? 0,
+        minutes: statData.totalMinutes ?? statData.minutes ?? 0,
+      },
+      weekly: statData.weekly || statData.daily || Array.from({ length: 7 }, (_, i) => logs[i] ? 1 : 0),
+      daily: statData.daily,
+      calories: statData.caloriesByDay || statData.calories || [],
+      bestWorkout: logs[0]?.exercise || logs[0] || null,
+      raw: { stats, history },
+    };
+  } catch {
+    return { summary: {}, weekly: [], calories: [] };
+  }
+}
+
+export const getWorkoutHistory = ProgressAPI.getWorkoutHistory;
+
+/* ───────────────────── User / subscription / notifications / AI ───────────────────── */
+
+export const UserAPI = {
+  getProfile: () => apiRequest<any>('/users/me'),
+  updateProfile: (profileData: any) => apiRequest<any>('/users/me', { method: 'PUT', body: JSON.stringify(profileData) }),
+  updateMetrics: (metrics: any) => apiRequest<any>('/users/metrics', { method: 'POST', body: JSON.stringify(metrics) }),
+  getMetricsHistory: (limit = 30) => apiRequest<any>(`/users/metrics/history?limit=${limit}`),
+};
+
+export const getProfile = UserAPI.getProfile;
+export const updateProfile = UserAPI.updateProfile;
+
+export const SubscriptionAPI = {
+  async getPlans() {
+    const res = await apiRequest<any>('/subscriptions/plans');
+    return Array.isArray(res?.plans) ? { success: true, data: res.plans } : res;
   },
-
-  clearStoredToken,
+  async getCurrentSubscription() {
+    const res = await apiRequest<any>('/subscriptions/current');
+    if (res && 'subscription' in res) return { success: true, data: res.subscription, plan: res.plan || res.subscription?.plan || null };
+    return res;
+  },
+  createCheckoutSession: (planId: string, interval = 'MONTHLY', callbackUrl?: string) => apiRequest<any>('/subscriptions/checkout', {
+    method: 'POST',
+    body: JSON.stringify({ planId, interval, ...(callbackUrl ? { callbackUrl } : {}) }),
+  }),
+  createPaystackCheckout: (planId: string, interval = 'MONTHLY', callbackUrl?: string) => SubscriptionAPI.createCheckoutSession(planId, interval, callbackUrl),
+  verifyPayment: (reference: string) => apiRequest<any>(`/subscriptions/paystack/verify/${encodeURIComponent(reference)}`),
+  cancelSubscription: () => apiRequest<any>('/subscriptions/cancel', { method: 'POST' }),
 };
 
-/* ───────────────────────────────
-   Current user / profile
-─────────────────────────────── */
+export const getSubscription = async () => firstData(await SubscriptionAPI.getCurrentSubscription());
+export const getPlans = async () => {
+  try { return asArray(await SubscriptionAPI.getPlans(), ['plans', 'items']).length ? asArray(await SubscriptionAPI.getPlans(), ['plans', 'items']) : []; }
+  catch { return []; }
+};
+export const checkoutPlan = (planId: string, interval = 'MONTHLY') => SubscriptionAPI.createPaystackCheckout(planId, interval);
+export const cancelSubscription = SubscriptionAPI.cancelSubscription;
 
-export const getProfile = () =>
-  apiRequest<any>('/users/me');
+export const NotificationsAPI = {
+  getAll: (limit = 30) => apiRequest<any>(`/notifications?limit=${limit}`).catch(() => ({ notifications: [], unreadCount: 0 })),
+  getUnreadCount: () => apiRequest<any>('/notifications/unread').catch(() => ({ count: 0 })),
+  markRead: (id: string) => apiRequest<any>(`/notifications/${id}/read`, { method: 'PUT' }),
+  markAllRead: () => apiRequest<any>('/notifications/read-all', { method: 'PUT' }),
+  delete: (id: string) => apiRequest<any>(`/notifications/${id}`, { method: 'DELETE' }),
+};
 
-export const updateProfile = (body: any) =>
-  apiRequest<any>('/users/me', {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
+export const getNotifications = async () => asArray(await NotificationsAPI.getAll(), ['notifications', 'items']);
+export const markNotificationRead = NotificationsAPI.markRead;
 
-/* ───────────────────────────────
-   Dashboard / progress
-─────────────────────────────── */
+export const askCoach = (message: string, context?: any) => apiRequest<any>('/ai/coach', {
+  method: 'POST',
+  body: JSON.stringify({ message, ...context }),
+});
+export const getCoachHistory = () => apiRequest<any>('/ai/coach/history').catch(() => []);
 
-export const getDashboard = () =>
-  apiRequest<any>('/progress/dashboard');
+export function isAuthenticated() {
+  return !!TokenManager.getAccessToken() || TokenManager.hasSession();
+}
 
-export const getProgress = (period = '7d') =>
-  apiRequest<any>(
-    `/progress?period=${encodeURIComponent(period)}`,
-  );
-
-export const getWorkoutHistory = (limit = 10) =>
-  apiRequest<any>(`/progress/history?limit=${limit}`);
-
-/* ───────────────────────────────
-   Workouts
-─────────────────────────────── */
-
-export const getWorkouts = () =>
-  serverFirst<any[]>('/workouts', FALLBACK_WORKOUTS as any[]);
-
-export const getWorkoutById = async (id: string) => {
-  try {
-    return await apiRequest<any>(
-      `/workouts/${encodeURIComponent(id)}`,
-    );
-  } catch {
-    const local = (FALLBACK_WORKOUTS as any[]).find(
-      (w) => w.id === id || w.slug === id,
-    );
-
-    return local || null;
+export async function requireAuth() {
+  if (TokenManager.getAccessToken()) return true;
+  const refreshed = await refreshAccessToken();
+  if (refreshed) {
+    try {
+      const me = await AuthAPI.getCurrentUser();
+      const user = extractUser(me);
+      if (user) TokenManager.setUser(user);
+    } catch {}
+    return true;
   }
-};
-
-export const logWorkout = (body: any) =>
-  apiRequest<any>('/workouts/log', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-
-/* ───────────────────────────────
-   Programs
-─────────────────────────────── */
-
-export const getPrograms = () =>
-  serverFirst<any[]>('/programs', FALLBACK_PROGRAMS as any[]);
-
-export const getProgramById = async (id: string) => {
-  try {
-    return await apiRequest<any>(
-      `/programs/${encodeURIComponent(id)}`,
-    );
-  } catch {
-    const local = (FALLBACK_PROGRAMS as any[]).find(
-      (p) => p.id === id || p.slug === id,
-    );
-
-    return local || null;
+  if (typeof window !== 'undefined') {
+    try { localStorage.setItem('redirectAfterLogin', window.location.pathname); } catch {}
+    window.location.href = '/auth/login';
   }
-};
-
-export const generateWorkoutPlan = (body: any) =>
-  apiRequest<any>('/programs/generate', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-
-export const saveAiProgram = (body: any) =>
-  apiRequest<any>('/programs/ai', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-
-/* ───────────────────────────────
-   Subscriptions
-─────────────────────────────── */
-
-export const getSubscription = () =>
-  apiRequest<any>('/subscriptions/current');
-
-export const getPlans = () =>
-  serverFirst<any[]>('/subscriptions/plans', []);
-
-export const checkoutPlan = (
-  planId: string,
-  interval = 'monthly',
-  provider = 'paystack',
-) =>
-  apiRequest<any>('/subscriptions/checkout', {
-    method: 'POST',
-    body: JSON.stringify({
-      planId,
-      interval,
-      provider,
-    }),
-  });
-
-export const cancelSubscription = () =>
-  apiRequest<any>('/subscriptions/cancel', {
-    method: 'POST',
-  });
-
-/* ───────────────────────────────
-   AI Coach
-─────────────────────────────── */
-
-export const askCoach = (
-  message: string,
-  context?: any,
-) =>
-  apiRequest<any>('/ai/coach', {
-    method: 'POST',
-    body: JSON.stringify({
-      message,
-      ...context,
-    }),
-  });
-
-export const getCoachHistory = () =>
-  serverFirst<any[]>('/ai/coach/history', []);
-
-/* ───────────────────────────────
-   Notifications
-─────────────────────────────── */
-
-export const getNotifications = () =>
-  serverFirst<any[]>('/notifications', []);
-
-export const markNotificationRead = (id: string) =>
-  apiRequest<any>(`/notifications/${id}/read`, {
-    method: 'PUT',
-  });
+  return false;
+}
