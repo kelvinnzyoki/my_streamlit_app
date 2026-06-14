@@ -8,4 +8,18 @@ export type Program = {
   duration: string;
   image: string;
   workouts: string[];
+  weeks?: Array<{
+    id?: string;
+    weekNumber?: number;
+    name?: string;
+    description?: string;
+    days?: Array<{
+      id?: string;
+      dayNumber?: number;
+      name?: string;
+      isRestDay?: boolean;
+      exercises?: Array<any>;
+    }>;
+  }>;
+  raw?: any;
 };
