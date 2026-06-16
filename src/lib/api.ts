@@ -659,6 +659,55 @@ export async function getWorkoutById(id: string) {
 
 /* ───────────────────── Programs ───────────────────── */
 
+export type ProgramEnrollmentDTO = {
+  id?: string;
+  programId?: string;
+  userId?: string;
+  completedDays?: number;
+  currentWeek?: number;
+  currentDay?: number;
+  progress?: number;
+  isActive?: boolean;
+  completedAt?: string | null;
+  program?: any;
+  completed_days?: number;
+  current_week?: number;
+  current_day?: number;
+  is_active?: boolean;
+  completed_at?: string | null;
+};
+
+function normalizeEnrollment(input: any, fallbackProgramId?: string): ProgramEnrollmentDTO | null {
+  const raw = input?.data?.enrollment || input?.enrollment || input?.data || input;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+
+  const programId = raw.programId || raw.program_id || raw.program?.id || fallbackProgramId;
+  const completedDays = Number(raw.completedDays ?? raw.completed_days ?? 0);
+  const currentWeek = Number(raw.currentWeek ?? raw.current_week ?? 1);
+  const currentDay = Number(raw.currentDay ?? raw.current_day ?? 1);
+  const explicitProgress = raw.progress ?? raw.percent ?? raw.completion;
+
+  return {
+    ...raw,
+    id: raw.id ? String(raw.id) : undefined,
+    programId: programId ? String(programId) : undefined,
+    userId: raw.userId || raw.user_id,
+    completedDays: Number.isFinite(completedDays) ? completedDays : 0,
+    currentWeek: Number.isFinite(currentWeek) ? currentWeek : 1,
+    currentDay: Number.isFinite(currentDay) ? currentDay : 1,
+    progress: explicitProgress !== undefined && Number.isFinite(Number(explicitProgress)) ? Number(explicitProgress) : undefined,
+    isActive: Boolean(raw.isActive ?? raw.is_active ?? true),
+    completedAt: raw.completedAt ?? raw.completed_at ?? null,
+    program: raw.program ? normalizeProgram(raw.program) : undefined,
+  };
+}
+
+function enrollmentArray(payload: any): ProgramEnrollmentDTO[] {
+  return asArray(payload, ['enrollments', 'programEnrollments', 'items', 'results', 'records'])
+    .map((item) => normalizeEnrollment(item))
+    .filter(Boolean) as ProgramEnrollmentDTO[];
+}
+
 export const ProgramsAPI = {
   async getPrograms(filters: Record<string, unknown> = {}) {
     const response = await apiRequest<any>(`/programs${toQueryString(filters)}`);
@@ -671,21 +720,61 @@ export const ProgramsAPI = {
     return { ...response, success: response?.success !== false, data: normalizeProgram(firstData(response)) };
   },
 
-  async enrollInProgram(programId: string) {
-    return apiRequest<any>(`/programs/${encodeURIComponent(programId)}/enroll`, { method: 'POST' });
-  },
-
-  async restartProgram(programId: string) {
-    return ProgramsAPI.enrollInProgram(programId);
-  },
-
   async getUserPrograms() {
     const response = await apiRequest<any>('/programs/my-enrollments');
     return {
       ...response,
       success: response?.success !== false,
-      data: asArray(response, ['enrollments', 'programEnrollments', 'items', 'results', 'records']),
+      data: enrollmentArray(response),
     };
+  },
+
+  async getEnrollmentForProgram(programId: string) {
+    const response = await ProgramsAPI.getUserPrograms();
+    const enrollments = enrollmentArray(response);
+    return enrollments.find((item) =>
+      String(item.programId || item.program?.id || '') === String(programId) &&
+      item.isActive !== false &&
+      !item.completedAt
+    ) || null;
+  },
+
+  async enrollInProgram(programId: string) {
+    try {
+      const response = await apiRequest<any>(`/programs/${encodeURIComponent(programId)}/enroll`, { method: 'POST' });
+      const enrollment = normalizeEnrollment(response, programId);
+      return { ...response, success: response?.success !== false, data: enrollment, enrollment };
+    } catch (error) {
+      // Backend correctly returns 409 when the user is already enrolled. For the UI,
+      // that is not a failure: we fetch the active enrollment and continue the flow.
+      if (error instanceof ApiError && error.status === 409) {
+        const enrollment = await ProgramsAPI.getEnrollmentForProgram(programId);
+        if (enrollment) {
+          return {
+            success: true,
+            alreadyEnrolled: true,
+            message: 'You are already enrolled in this program.',
+            data: enrollment,
+            enrollment,
+          };
+        }
+      }
+      throw error;
+    }
+  },
+
+  async restartProgram(programId: string) {
+    try {
+      const response = await apiRequest<any>(`/programs/${encodeURIComponent(programId)}/restart`, { method: 'POST' });
+      const enrollment = normalizeEnrollment(response, programId);
+      return { ...response, success: response?.success !== false, data: enrollment, enrollment };
+    } catch (error) {
+      // Some older backends do not expose /restart separately. Fall back to enroll.
+      if (error instanceof ApiError && (error.status === 404 || error.status === 405)) {
+        return ProgramsAPI.enrollInProgram(programId);
+      }
+      throw error;
+    }
   },
 
   async cancelEnrollment(enrollmentId: string) {
@@ -693,10 +782,16 @@ export const ProgramsAPI = {
   },
 
   async updateProgress(enrollmentId: string, data: any) {
-    return apiRequest<any>(`/programs/enrollments/${encodeURIComponent(enrollmentId)}/progress`, {
+    const response = await apiRequest<any>(`/programs/enrollments/${encodeURIComponent(enrollmentId)}/progress`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        completedDays: data.completedDays ?? data.completed_days,
+        currentWeek: data.currentWeek ?? data.current_week,
+        currentDay: data.currentDay ?? data.current_day,
+      }),
     });
+    const enrollment = normalizeEnrollment(response);
+    return { ...response, success: response?.success !== false, data: enrollment, enrollment };
   },
 
   async getAiProgram() { return apiRequest<any>('/programs/ai-generated'); },
