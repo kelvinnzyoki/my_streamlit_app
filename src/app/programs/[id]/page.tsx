@@ -435,24 +435,34 @@ export default function ProgramDetailPage() {
         ? await ProgramsAPI.restartProgram(program.id)
         : await ProgramsAPI.enrollInProgram(program.id);
 
-      const newEnrollment = unwrapEnrollment(response) || {};
+      let newEnrollment = unwrapEnrollment(response) || {};
+
+      // If the backend responded with an already-enrolled message or a thin payload,
+      // fetch the active enrollment so the UI can unlock today's workouts immediately.
+      if (!newEnrollment.id && typeof ProgramsAPI.getEnrollmentForProgram === 'function') {
+        const existing = await ProgramsAPI.getEnrollmentForProgram(program.id).catch(() => null);
+        if (existing) newEnrollment = existing;
+      }
+
       const mergedEnrollment: Enrollment = {
         ...newEnrollment,
         id: newEnrollment.id,
-        programId: newEnrollment.programId || program.id,
+        programId: newEnrollment.programId || newEnrollment.program?.id || program.id,
         completedDays: numberOr(newEnrollment.completedDays ?? newEnrollment.completed_days, 0),
         currentWeek: numberOr(newEnrollment.currentWeek ?? newEnrollment.current_week, 1),
         currentDay: numberOr(newEnrollment.currentDay ?? newEnrollment.current_day, 1),
         progress: numberOr(newEnrollment.progress, 0),
+        isActive: newEnrollment.isActive ?? newEnrollment.is_active ?? true,
       };
+
+      if (!mergedEnrollment.id) {
+        throw new Error('Enrollment was saved, but the server did not return the enrollment ID. Refresh and try again.');
+      }
 
       setEnrollment(mergedEnrollment);
       setExerciseProgress({});
-      setMessage(restart ? 'Program restarted. Begin with Day 1.' : 'You are enrolled. Start today’s workouts below.');
-
-      if (mergedEnrollment.id) {
-        router.replace(`/programs/${encodeURIComponent(program.id)}?enrollmentId=${encodeURIComponent(mergedEnrollment.id)}`);
-      }
+      setMessage(response?.alreadyEnrolled ? 'You are already enrolled. Continue today’s workouts below.' : restart ? 'Program restarted. Begin with Day 1.' : 'You are enrolled. Start today’s workouts below.');
+      router.replace(`/programs/${encodeURIComponent(program.id)}?enrollmentId=${encodeURIComponent(mergedEnrollment.id)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not enroll in this program.');
     } finally {
