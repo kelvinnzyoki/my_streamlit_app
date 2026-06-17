@@ -456,6 +456,11 @@ export function normalizeProgram(input: any): Program & {
     totalWeeks: weeks.length,
     totalDays,
     totalExercises,
+    isEnrolled: Boolean(input?.isEnrolled || input?.enrolled || input?.activeEnrollment || input?.currentEnrollment || input?.enrollment),
+    enrolled: Boolean(input?.isEnrolled || input?.enrolled || input?.activeEnrollment || input?.currentEnrollment || input?.enrollment),
+    activeEnrollment: input?.activeEnrollment || input?.currentEnrollment || input?.enrollment || (Array.isArray(input?.enrollments) ? input.enrollments[0] : null),
+    currentEnrollment: input?.currentEnrollment || input?.activeEnrollment || input?.enrollment || (Array.isArray(input?.enrollments) ? input.enrollments[0] : null),
+    enrollmentProgress: Number(input?.enrollmentProgress ?? input?.progress ?? 0) || 0,
     raw: input,
   } as Program & {
     weeks?: any[];
@@ -708,10 +713,55 @@ function enrollmentArray(payload: any): ProgramEnrollmentDTO[] {
     .filter(Boolean) as ProgramEnrollmentDTO[];
 }
 
+
+function mergeProgramsWithEnrollments(programs: any[], enrollments: ProgramEnrollmentDTO[]) {
+  const map = new Map<string, ProgramEnrollmentDTO>();
+
+  for (const enrollment of enrollments || []) {
+    const programId = String(enrollment?.programId || enrollment?.program?.id || '');
+    if (programId && enrollment?.isActive !== false && !enrollment?.completedAt) {
+      map.set(programId, enrollment);
+    }
+  }
+
+  return (programs || []).map((program: any) => {
+    const enrollment = map.get(String(program.id));
+    if (!enrollment) return program;
+
+    const totalDays = Number(program.totalDays || 0);
+    const completedDays = Number(enrollment.completedDays || 0);
+    const progress = totalDays > 0
+      ? Math.max(0, Math.min(100, Math.round((completedDays / totalDays) * 100)))
+      : Number(enrollment.progress || 0);
+
+    return {
+      ...program,
+      isEnrolled: true,
+      enrolled: true,
+      activeEnrollment: enrollment,
+      currentEnrollment: enrollment,
+      enrollment,
+      enrollmentProgress: Number.isFinite(progress) ? progress : 0,
+    };
+  });
+}
+
 export const ProgramsAPI = {
   async getPrograms(filters: Record<string, unknown> = {}) {
     const response = await apiRequest<any>(`/programs${toQueryString(filters)}`);
-    const data = asArray(response, ['programs', 'items', 'results', 'records']).map(normalizeProgram);
+    let data = asArray(response, ['programs', 'items', 'results', 'records']).map(normalizeProgram);
+
+    // Prefer server-provided enrollment fields. If the list endpoint does not
+    // include them yet, fetch my-enrollments from the server and merge locally.
+    if (!data.some((program: any) => program.isEnrolled || program.activeEnrollment || program.currentEnrollment)) {
+      try {
+        const enrollmentResponse = await apiRequest<any>('/programs/my-enrollments');
+        data = mergeProgramsWithEnrollments(data, enrollmentArray(enrollmentResponse));
+      } catch {
+        // Do not fail the programs grid if enrollment status is temporarily unavailable.
+      }
+    }
+
     return { ...response, success: response?.success !== false, data };
   },
 
