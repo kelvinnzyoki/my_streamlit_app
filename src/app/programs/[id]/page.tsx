@@ -13,6 +13,7 @@ import {
   Play,
   RotateCcw,
   Trophy,
+  AlertTriangle,
 } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import { ProgramsAPI, getProgramById, getWorkouts } from '@/lib/api';
@@ -275,6 +276,7 @@ export default function ProgramDetailPage() {
   const [savingProgress, setSavingProgress] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const handledReturnRef = useRef(false);
 
   useEffect(() => {
@@ -407,6 +409,20 @@ export default function ProgramDetailPage() {
   }
 
 
+
+  function requestRestart() {
+    if (!enrollment) {
+      setRestartConfirmOpen(true);
+      return;
+    }
+
+    setRestartConfirmOpen(true);
+  }
+
+  async function confirmRestart() {
+    setRestartConfirmOpen(false);
+    await enroll(true);
+  }
 
   async function enroll(restart = false) {
     if (!program) return;
@@ -569,7 +585,7 @@ export default function ProgramDetailPage() {
                 </button>
               )}
 
-              <button className="secondary-btn" onClick={() => enroll(true)} disabled={enrolling || savingProgress}>
+              <button className="secondary-btn restart-program-btn" onClick={requestRestart} disabled={enrolling || savingProgress}>
                 <RotateCcw size={15} /> Restart Program
               </button>
             </div>
@@ -705,6 +721,26 @@ export default function ProgramDetailPage() {
             <h2>Program Complete</h2>
             <p className="muted">You finished every scheduled day in this program.</p>
           </article>
+        )}
+
+        {restartConfirmOpen && (
+          <div className="ff-confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="restart-program-title">
+            <div className="ff-confirm-box program-restart-confirm">
+              <span className="ff-confirm-icon"><AlertTriangle size={36} /></span>
+              <h2 id="restart-program-title" className="ff-confirm-title">Restart program?</h2>
+              <p className="ff-confirm-msg">
+                This will reset your server-saved program progress back to Day 1. Your previous workout logs remain in your general progress history, but this program journey will start again.
+              </p>
+              <div className="ff-confirm-actions">
+                <button type="button" className="ff-confirm-cancel" onClick={() => setRestartConfirmOpen(false)} disabled={enrolling}>
+                  Keep Progress
+                </button>
+                <button type="button" className="ff-confirm-ok danger" onClick={confirmRestart} disabled={enrolling}>
+                  {enrolling ? 'Restarting…' : 'Yes, Restart'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </section>
     </DashboardShell>
