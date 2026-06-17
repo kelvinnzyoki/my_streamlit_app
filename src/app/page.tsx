@@ -1,48 +1,33 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
-import ProgramCard from '@/components/programCard';
-import WorkoutCard from '@/components/workoutCard';
-import { getPrograms, getWorkouts } from '@/lib/api';
 
-export default async function HomePage() {
-  const [programsResult, workoutsResult] = await Promise.allSettled([
-    getPrograms(),
-    getWorkouts(),
-  ]);
+const PROGRAM_PREVIEWS = [
+  { title: 'Structured Programs', desc: 'Goal-based plans with weeks, days, and guided sessions.', meta: 'Login to view plans' },
+  { title: 'AI Workout Planning', desc: 'Generate focused training plans based on your goal and level.', meta: 'Create account first' },
+  { title: 'Progress Tracking', desc: 'Track completed workouts, streaks, calories, and performance.', meta: 'Protected dashboard' },
+];
 
-  const programs =
-    programsResult.status === 'fulfilled' && Array.isArray(programsResult.value)
-      ? programsResult.value
-      : [];
+const WORKOUT_PREVIEWS = [
+  { title: 'Strength', desc: 'Push-ups, squats, lunges, dips, and full-body strength blocks.' },
+  { title: 'Cardio', desc: 'Burpees, sprints, high knees, jumping jacks, and conditioning.' },
+  { title: 'Core', desc: 'Planks, crunches, leg raises, Russian twists, and stability work.' },
+  { title: 'Mobility', desc: 'Recovery sessions, stretches, posture, and joint-friendly movement.' },
+];
 
-  const workouts =
-    workoutsResult.status === 'fulfilled' && Array.isArray(workoutsResult.value)
-      ? workoutsResult.value
-      : [];
-
+export default function HomePage() {
   return (
     <>
       <Navbar />
 
-      <main className="ff-home">
-        {/* ── Hero ── */}
+      <main className="ff-landing-main">
         <section className="ff-landing-hero-wrap">
           <div className="hero-card ff-landing-hero">
             <div className="ff-hero-content">
-              <p className="eyebrow ff-hero-eyebrow">
-                AI Home Fitness Platform
-              </p>
+              <p className="eyebrow ff-hero-eyebrow">AI Home Fitness Platform</p>
 
               <h1 className="hero-title ff-hero-title">
-                Train smarter.
-                <br />
-                Track deeper.
-                <br />
-                Transform at home.
+                Train smarter.<br />Track deeper.<br />Transform at home.
               </h1>
 
               <p className="muted ff-hero-text">
@@ -54,8 +39,7 @@ export default async function HomePage() {
                 <Link href="/auth/register" className="primary-btn ff-premium-btn">
                   Start Free
                 </Link>
-
-                <Link href="/workouts" className="secondary-btn ff-glass-btn">
+                <Link href="/auth/login?redirect=/workouts" className="secondary-btn ff-glass-btn">
                   Explore Workouts
                 </Link>
               </div>
@@ -63,50 +47,50 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── Programs ── */}
         <section className="ff-public-section">
           <div className="page-section">
             <p className="eyebrow ff-section-eyebrow">Featured Programs</p>
             <h2 className="ff-section-title">Structured Training Plans</h2>
-
             <div className="grid grid-3">
-              {programs.slice(0, 3).map((p: any) => (
-                <ProgramCard key={p.id} program={p} />
+              {PROGRAM_PREVIEWS.map((item) => (
+                <Link key={item.title} href="/auth/login?redirect=/programs" className="premium-card ff-public-preview-card">
+                  <p className="eyebrow">{item.meta}</p>
+                  <h3>{item.title}</h3>
+                  <p className="muted">{item.desc}</p>
+                  <span className="secondary-btn">Login to View</span>
+                </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Workouts ── */}
         <section className="ff-public-section">
           <div className="page-section">
             <p className="eyebrow ff-section-eyebrow">Popular Workouts</p>
             <h2 className="ff-section-title">Start a Quick Session</h2>
-
             <div className="grid grid-4">
-              {workouts.slice(0, 4).map((w: any) => (
-                <WorkoutCard key={w.id} workout={w} />
+              {WORKOUT_PREVIEWS.map((item) => (
+                <Link key={item.title} href="/auth/login?redirect=/workouts" className="premium-card ff-public-preview-card ff-workout-preview-card">
+                  <p className="eyebrow">Workout Category</p>
+                  <h3>{item.title}</h3>
+                  <p className="muted">{item.desc}</p>
+                  <span className="primary-btn">Login to Start</span>
+                </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── CTA ── */}
         <section className="ff-public-section ff-final-cta-wrap">
           <div className="page-section">
             <div className="premium-card ff-final-cta">
               <p className="eyebrow ff-section-eyebrow">Get Started Today</p>
-
-              <h2 className="ff-section-title">
-                Your fitness journey starts now
-              </h2>
-
+              <h2 className="ff-section-title">Your fitness journey starts now</h2>
               <p className="muted ff-cta-text">
                 Free forever plan available. Upgrade anytime for AI coaching,
                 advanced analytics, and personalised programs.
               </p>
-
-              <Link href="/auth/register" className="primary-btn ff-premium-btn">
+              <Link href="/auth/register" className="primary-btn ff-premium-btn ff-inline-premium-btn">
                 Create Free Account
               </Link>
             </div>
