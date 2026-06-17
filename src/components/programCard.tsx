@@ -1,53 +1,177 @@
 import Link from 'next/link';
-import { CalendarDays, Dumbbell, Layers3 } from 'lucide-react';
-import { imageUrl } from '@/lib/utils';
+import { CalendarDays, CheckCircle2, Dumbbell, Layers3, LockKeyhole, PlayCircle, Sparkles } from 'lucide-react';
 import type { Program } from '@/types/program';
+
+const PROGRAM_IMAGE_BY_CATEGORY: Record<string, string> = {
+  strength: '/images/exercises/pushups.webp',
+  hiit: '/images/exercises/burpees.webp',
+  core: '/images/exercises/plank.webp',
+  mobility: '/images/exercises/downwarddog.webp',
+  conditioning: '/images/exercises/sprints.webp',
+  cardio: '/images/exercises/highknees.webp',
+  general_fitness: '/images/fit1.webp',
+};
+
+function pickProgramImage(program: any) {
+  if (program.image || program.imageUrl || program.coverImage) {
+    return program.image || program.imageUrl || program.coverImage;
+  }
+
+  const category = String(program.category || program.focus || 'general_fitness').toLowerCase();
+  return PROGRAM_IMAGE_BY_CATEGORY[category] || PROGRAM_IMAGE_BY_CATEGORY.general_fitness;
+}
 
 function countExercises(program: any) {
   if (typeof program.totalExercises === 'number') return program.totalExercises;
+
   if (Array.isArray(program.weeks)) {
-    return program.weeks.reduce((sum: number, week: any) => sum + (week.days || []).reduce((daySum: number, day: any) => daySum + (day.exercises || []).length, 0), 0);
+    return program.weeks.reduce(
+      (sum: number, week: any) =>
+        sum + (week.days || []).reduce(
+          (daySum: number, day: any) => daySum + (day.exercises || []).length,
+          0,
+        ),
+      0,
+    );
   }
+
   return Array.isArray(program.workouts) ? program.workouts.length : 0;
 }
 
 function countDays(program: any) {
   if (typeof program.totalDays === 'number') return program.totalDays;
-  if (Array.isArray(program.weeks)) return program.weeks.reduce((sum: number, week: any) => sum + (week.days || []).length, 0);
-  const weeks = Number(program.durationWeeks || 0);
+
+  if (Array.isArray(program.weeks)) {
+    return program.weeks.reduce(
+      (sum: number, week: any) => sum + (week.days || []).length,
+      0,
+    );
+  }
+
+  const weeks = Number(program.durationWeeks || program.totalWeeks || 0);
   const days = Number(program.daysPerWeek || 0);
+
   return weeks && days ? weeks * days : 0;
+}
+
+function normalizeLabel(value: unknown, fallback = 'Program') {
+  return String(value || fallback).replace(/[_-]+/g, ' ');
 }
 
 export default function ProgramCard({ program }: { program: Program & any }) {
   const href = `/programs/${encodeURIComponent(program.slug || program.id)}`;
-  const exerciseCount = countExercises(program);
-  const dayCount = countDays(program);
+
+  const title = program.title || program.name || 'FlowFit Program';
+  const level = normalizeLabel(program.level || program.difficulty || 'Beginner');
+  const focus = normalizeLabel(program.focus || program.category || 'General Fitness');
   const weeks = Number(program.durationWeeks || program.totalWeeks || 1);
+  const days = countDays(program);
+  const exerciseCount = countExercises(program);
+
+  const isEnrolled = Boolean(
+    program.isEnrolled ||
+    program.enrolled ||
+    program.activeEnrollment ||
+    program.currentEnrollment ||
+    program.enrollment,
+  );
+
+  const progress = Number(
+    program.enrollmentProgress ??
+    program.progress ??
+    program.activeEnrollment?.progress ??
+    program.currentEnrollment?.progress ??
+    0,
+  );
+
+  const safeProgress = Number.isFinite(progress)
+    ? Math.max(0, Math.min(100, Math.round(progress)))
+    : 0;
 
   return (
-    <article className="premium-card content-card program-card">
-      <img src={imageUrl(program.image)} alt={program.title || program.name || 'FlowFit Program'} className="card-img" loading="lazy" />
+    <article className={`premium-card content-card ff-program-card ${isEnrolled ? 'is-enrolled' : ''}`}>
+      <div className="ff-card-media">
+        <img
+          src={pickProgramImage(program)}
+          alt={title}
+          className="ff-card-img"
+          loading="lazy"
+        />
 
-      <div className="card-body">
-        <p className="eyebrow">{program.level || program.difficulty || 'Program'}</p>
-        <h3>{program.title || program.name}</h3>
-        <p className="muted clamp-3">{program.description}</p>
+        <div className="ff-card-shade" />
 
-        <div className="metric-row">
-          <span><CalendarDays size={13} /> {weeks} week{weeks === 1 ? '' : 's'}</span>
-          <span><Layers3 size={13} /> {dayCount || program.daysPerWeek || 1} day{dayCount === 1 ? '' : 's'}</span>
-          <span><Dumbbell size={13} /> {exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}</span>
-          {program.focus && <span>{program.focus}</span>}
+        <div className="ff-card-topline">
+          <span className="ff-card-badge">
+            <Sparkles size={13} />
+            {level}
+          </span>
+
+          {isEnrolled ? (
+            <span className="ff-enrolled-badge">
+              <CheckCircle2 size={13} />
+              Enrolled
+            </span>
+          ) : (
+            <span className="ff-card-badge muted-badge">
+              <LockKeyhole size={13} />
+              Available
+            </span>
+          )}
         </div>
 
-        {program.scheduleSource && (
-          <p className="muted" style={{ fontSize: '0.74rem', marginTop: '0.75rem' }}>
-            Schedule source: {program.scheduleSource === 'database' ? 'saved plan' : program.scheduleSource === 'metadata.aiPlan' ? 'AI metadata' : 'FlowFit template'}
-          </p>
+        <div className="ff-card-media-title">
+          <p>{focus}</p>
+          <h3>{title}</h3>
+        </div>
+      </div>
+
+      <div className="ff-card-body">
+        <p className="ff-card-desc">{program.description || 'A structured FlowFit training plan built for steady progress.'}</p>
+
+        <div className="ff-meta-grid">
+          <span>
+            <CalendarDays size={15} />
+            <strong>{weeks}</strong>
+            <small>{weeks === 1 ? 'week' : 'weeks'}</small>
+          </span>
+
+          <span>
+            <Layers3 size={15} />
+            <strong>{days || program.daysPerWeek || 1}</strong>
+            <small>{(days || program.daysPerWeek) === 1 ? 'day' : 'days'}</small>
+          </span>
+
+          <span>
+            <Dumbbell size={15} />
+            <strong>{exerciseCount}</strong>
+            <small>{exerciseCount === 1 ? 'exercise' : 'exercises'}</small>
+          </span>
+        </div>
+
+        {isEnrolled && (
+          <div className="ff-program-progress">
+            <div className="ff-program-progress-head">
+              <span>Program progress</span>
+              <strong>{safeProgress}%</strong>
+            </div>
+            <div className="ff-program-progress-track">
+              <i style={{ width: `${safeProgress}%` }} />
+            </div>
+          </div>
         )}
 
-        <Link href={href} className="secondary-btn card-btn">View Program</Link>
+        <div className="ff-card-actions">
+          <Link href={href} className={isEnrolled ? 'primary-btn ff-card-btn' : 'secondary-btn ff-card-btn'}>
+            {isEnrolled ? (
+              <>
+                <PlayCircle size={16} />
+                Continue Program
+              </>
+            ) : (
+              'View Program'
+            )}
+          </Link>
+        </div>
       </div>
     </article>
   );
