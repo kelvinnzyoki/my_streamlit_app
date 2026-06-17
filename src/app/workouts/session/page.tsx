@@ -1,8 +1,9 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Check, ExternalLink, Pause, Play, Plus, RotateCcw } from 'lucide-react';
+import { BarChart3, Check, Dumbbell, ExternalLink, LayoutDashboard, ListChecks, Pause, Play, Plus, RotateCcw } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import { getWorkoutById, logWorkout } from '@/lib/api';
 import { formatTime, imageUrl } from '@/lib/utils';
@@ -153,7 +154,9 @@ function SessionContent() {
       });
 
       setSaved(true);
-      window.setTimeout(() => router.replace(returnUrl), 650);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      setRunning(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not log workout.');
     } finally {
@@ -188,7 +191,7 @@ function SessionContent() {
         </div>
 
         {error && <div className="alert">{error}</div>}
-        {saved && <div className="success-alert">Workout logged. Returning to your program…</div>}
+        {saved && <div className="success-alert">Workout logged successfully. Choose where to go next.</div>}
 
         <div className="grid grid-2" style={{ alignItems: 'start' }}>
           <div>
@@ -243,8 +246,35 @@ function SessionContent() {
                 <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did it go?" />
               </div>
               <button className="primary-btn" style={{ width: '100%' }} onClick={handleLog} disabled={saving || saved}>
-                {saving ? 'Saving…' : saved ? 'Saved' : 'Save & Return to Program'}
+                {saving ? 'Saving…' : saved ? 'Saved' : 'Save Workout'}
               </button>
+
+              {saved && (
+                <div className="session-complete-actions" aria-label="Workout completion navigation options">
+                  {programId && (
+                    <Link href={returnUrl} className="session-complete-card primary">
+                      <ListChecks size={18} />
+                      <span>Continue Program</span>
+                      <small>Return to today’s remaining workouts</small>
+                    </Link>
+                  )}
+                  <Link href="/progress" className="session-complete-card">
+                    <BarChart3 size={18} />
+                    <span>View Progress</span>
+                    <small>Check your stats and history</small>
+                  </Link>
+                  <Link href="/workouts" className="session-complete-card">
+                    <Dumbbell size={18} />
+                    <span>More Workouts</span>
+                    <small>Start another quick session</small>
+                  </Link>
+                  <Link href="/dashboard" className="session-complete-card">
+                    <LayoutDashboard size={18} />
+                    <span>Dashboard</span>
+                    <small>Return to your control centre</small>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
