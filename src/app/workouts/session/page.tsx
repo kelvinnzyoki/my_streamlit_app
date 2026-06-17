@@ -1,15 +1,22 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { BarChart3, Check, Dumbbell, ExternalLink, LayoutDashboard, ListChecks, Pause, Play, Plus, RotateCcw } from 'lucide-react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Check, ExternalLink, Pause, Play, Plus, RotateCcw, X } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import { getWorkoutById, logWorkout } from '@/lib/api';
 import { formatTime, imageUrl } from '@/lib/utils';
 import type { Workout } from '@/types/workout';
 
 type SetRow = { reps: string; load: string; done: boolean };
+
+type SessionToast = {
+  type: 'success' | 'error' | 'info' | 'warning';
+  title: string;
+  message: string;
+  actions?: Array<{ label: string; href: string; primary?: boolean }>;
+};
 
 function numberParam(value: string | null): number | undefined {
   if (value === null || value === '') return undefined;
@@ -19,7 +26,6 @@ function numberParam(value: string | null): number | undefined {
 
 function SessionContent() {
   const params = useSearchParams();
-  const router = useRouter();
 
   const id = params.get('id') || params.get('guide') || 'pushups';
   const guide = params.get('guide') || id;
@@ -37,7 +43,11 @@ function SessionContent() {
   const [difficulty, setDifficulty] = useState<'Easy' | 'Moderate' | 'Hard'>('Moderate');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
+  const [toast, setToast] = useState<SessionToast | null>(null);
+
+  function showToast(nextToast: SessionToast) {
+    setToast(nextToast);
+  }
 
   useEffect(() => {
     let active = true;
@@ -125,8 +135,17 @@ function SessionContent() {
   async function handleLog() {
     if (!workout) return;
 
+    if (seconds < 1) {
+      showToast({
+        type: 'warning',
+        title: 'Start the timer first',
+        message: 'You need to log some workout time before saving this session.',
+      });
+      return;
+    }
+
     setSaving(true);
-    setError('');
+    setToast(null);
 
     try {
       await logWorkout({
@@ -136,7 +155,8 @@ function SessionContent() {
         id: workout.id,
         name: workout.name,
         category: workout.category,
-        duration: Math.max(Math.round(seconds / 60), Number(params.get('duration') || workout.duration || 1), 1),
+        duration: Math.max(Math.round(seconds / 60), 1),
+        seconds,
         caloriesBurned: displayCalories,
         calories: displayCalories,
         difficulty,
@@ -153,12 +173,27 @@ function SessionContent() {
         nextDay: numberParam(params.get('nextDay')),
       });
 
-      setSaved(true);
       if (intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = null;
       setRunning(false);
+      setSaved(true);
+      showToast({
+        type: 'success',
+        title: 'Workout saved',
+        message: 'Choose where to go next. Your workout has been recorded successfully.',
+        actions: [
+          { label: programId ? 'Continue Program' : 'Progress', href: returnUrl, primary: true },
+          { label: 'Progress', href: '/progress' },
+          { label: 'Workouts', href: '/workouts' },
+          { label: 'Dashboard', href: '/dashboard' },
+        ],
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not log workout.');
+      showToast({
+        type: 'error',
+        title: 'Could not save workout',
+        message: err instanceof Error ? err.message : 'Could not log workout.',
+      });
     } finally {
       setSaving(false);
     }
@@ -177,6 +212,28 @@ function SessionContent() {
   return (
     <DashboardShell>
       <section className="page-section">
+        {toast && (
+          <div className="ff-toast-viewport" role="status" aria-live="polite">
+            <div className={`ff-session-toast ff-session-toast-${toast.type}`}>
+              <button className="ff-toast-close" type="button" aria-label="Close notification" onClick={() => setToast(null)}>
+                <X size={16} />
+              </button>
+              <p className="ff-toast-kicker">FlowFit</p>
+              <h3>{toast.title}</h3>
+              <p>{toast.message}</p>
+              {toast.actions?.length ? (
+                <div className="ff-toast-actions">
+                  {toast.actions.map((action) => (
+                    <Link key={`${action.label}-${action.href}`} href={action.href} className={action.primary ? 'primary-btn' : 'secondary-btn'}>
+                      {action.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
+
         <div className="session-hero">
           <img src={imageUrl(workout.altImage || workout.image)} alt={workout.name} />
           <div className="session-hero-overlay" />
@@ -190,11 +247,19 @@ function SessionContent() {
           </div>
         </div>
 
-        {error && <div className="alert">{error}</div>}
-        {saved && <div className="success-alert">Workout logged successfully. Choose where to go next.</div>}
-
         <div className="grid grid-2" style={{ alignItems: 'start' }}>
           <div>
+            <div className="premium-card session-tutorial-card">
+              <div>
+                <p className="eyebrow">Tutorial Video</p>
+                <h2 style={{ margin: '0.35rem 0 0.45rem' }}>Watch form before starting</h2>
+                <p className="muted" style={{ margin: 0, fontSize: '0.9rem' }}>Open a YouTube demonstration for {workout.name} technique.</p>
+              </div>
+              <a href={`https://www.youtube.com/results?search_query=${ytQuery}`} target="_blank" rel="noopener noreferrer" className="secondary-btn">
+                <ExternalLink size={15} /> Watch on YouTube
+              </a>
+            </div>
+
             <div className="timer-card">
               <p className="timer-label">Session Timer</p>
               <div className={`timer-display ${running ? 'running' : ''}`}>{formatTime(seconds)}</div>
@@ -223,10 +288,10 @@ function SessionContent() {
               {sets.map((row, index) => (
                 <div className="set-row" key={index}>
                   <span className="set-num">{index + 1}</span>
-                  <input className="set-input" type="number" min="0" value={row.reps} onChange={(e) => updateSet(index, 'reps', e.target.value)} />
-                  <input className="set-input" type="number" min="0" step="0.5" value={row.load} placeholder="BW" onChange={(e) => updateSet(index, 'load', e.target.value)} />
-                  <button className={`set-done-btn ${row.done ? 'done' : ''}`} onClick={() => updateSet(index, 'done', !row.done)}><Check size={12} /></button>
-                  <button className="set-del-btn" disabled={sets.length === 1} onClick={() => removeSet(index)}>×</button>
+                  <input className="set-input" type="number" min="0" value={row.reps} onChange={(e) => updateSet(index, 'reps', e.target.value)} disabled={saving || saved} />
+                  <input className="set-input" type="number" min="0" step="0.5" value={row.load} placeholder="BW" onChange={(e) => updateSet(index, 'load', e.target.value)} disabled={saving || saved} />
+                  <button className={`set-done-btn ${row.done ? 'done' : ''}`} onClick={() => updateSet(index, 'done', !row.done)} disabled={saving || saved}><Check size={12} /></button>
+                  <button className="set-del-btn" disabled={sets.length === 1 || saving || saved} onClick={() => removeSet(index)}>×</button>
                 </div>
               ))}
             </div>
@@ -235,46 +300,22 @@ function SessionContent() {
               <h2 style={{ marginBottom: '1rem' }}>Save Workout</h2>
               <div className="field">
                 <label>Difficulty</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="session-difficulty-row">
                   {(['Easy', 'Moderate', 'Hard'] as const).map((item) => (
-                    <button key={item} className={difficulty === item ? 'primary-btn' : 'secondary-btn'} style={{ flex: 1 }} onClick={() => setDifficulty(item)} disabled={saving || saved}>{item}</button>
+                    <button key={item} className={difficulty === item ? 'primary-btn' : 'secondary-btn'} onClick={() => setDifficulty(item)} disabled={saving || saved}>{item}</button>
                   ))}
                 </div>
               </div>
               <div className="field">
                 <label>Notes</label>
-                <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did it go?" />
+                <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did it go?" disabled={saving || saved} />
               </div>
               <button className="primary-btn" style={{ width: '100%' }} onClick={handleLog} disabled={saving || saved}>
                 {saving ? 'Saving…' : saved ? 'Saved' : 'Save Workout'}
               </button>
-
-              {saved && (
-                <div className="session-complete-actions" aria-label="Workout completion navigation options">
-                  {programId && (
-                    <Link href={returnUrl} className="session-complete-card primary">
-                      <ListChecks size={18} />
-                      <span>Continue Program</span>
-                      <small>Return to today’s remaining workouts</small>
-                    </Link>
-                  )}
-                  <Link href="/progress" className="session-complete-card">
-                    <BarChart3 size={18} />
-                    <span>View Progress</span>
-                    <small>Check your stats and history</small>
-                  </Link>
-                  <Link href="/workouts" className="session-complete-card">
-                    <Dumbbell size={18} />
-                    <span>More Workouts</span>
-                    <small>Start another quick session</small>
-                  </Link>
-                  <Link href="/dashboard" className="session-complete-card">
-                    <LayoutDashboard size={18} />
-                    <span>Dashboard</span>
-                    <small>Return to your control centre</small>
-                  </Link>
-                </div>
-              )}
+              <p className="muted" style={{ margin: '0.75rem 0 0', fontSize: '0.8rem', textAlign: 'center' }}>
+                Start the timer before saving. After saving, navigation options appear as a toast.
+              </p>
             </div>
           </div>
 
@@ -293,13 +334,6 @@ function SessionContent() {
                 {workout.instructions.map((step, index) => <div key={`${step}-${index}`} className="mini-link"><strong>{index + 1}</strong><span>{step}</span></div>)}
               </div>
             ) : null}
-
-            <div className="premium-card">
-              <h2 style={{ marginBottom: '0.75rem' }}>Tutorial Video</h2>
-              <a href={`https://www.youtube.com/results?search_query=${ytQuery}`} target="_blank" rel="noopener noreferrer" className="secondary-btn" style={{ width: '100%' }}>
-                <ExternalLink size={15} /> Watch on YouTube
-              </a>
-            </div>
           </div>
         </div>
       </section>
