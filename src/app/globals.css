@@ -2159,450 +2159,209 @@ body:has(.app-shell.is-sidebar-open) {
 }
 
 
-/* ═══════════════════════════════════════════════════════
-   FLOWFIT PROGRAM + WORKOUT CARD PREMIUM ART PATCH
-   Replaces stacked card meta/buttons with responsive visual cards.
-═══════════════════════════════════════════════════════ */
+/* PATCH — Program restart guard, premium workout cards, and workout completion actions */
+.restart-program-btn {
+  border-color: rgba(224,84,84,0.32) !important;
+  color: #ffb4b4 !important;
+}
+.restart-program-btn:hover {
+  background: rgba(224,84,84,0.10) !important;
+  border-color: rgba(224,84,84,0.52) !important;
+}
+.program-restart-confirm .ff-confirm-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 0.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: #ffb4b4;
+  background: rgba(224,84,84,0.10);
+  border: 1px solid rgba(224,84,84,0.28);
+}
 
-.ff-program-card,
-.ff-workout-card {
+.ff-workout-card,
+.exercise-card.ff-workout-card {
   position: relative;
   padding: 0 !important;
-  border-radius: 28px !important;
-  overflow: hidden !important;
-  border: 1px solid var(--Au-14, rgba(212,175,55,0.14)) !important;
+  border-radius: 24px !important;
+  overflow: hidden;
   background:
-    radial-gradient(circle at 90% 8%, var(--Au-10, rgba(212,175,55,0.1)), transparent 34%),
-    linear-gradient(145deg, rgba(20,18,32,0.96), rgba(7,6,12,0.98)) !important;
-  box-shadow:
-    0 18px 55px rgba(0,0,0,0.34),
-    inset 0 1px 0 rgba(255,255,255,0.035) !important;
-  transition: transform .26s ease, border-color .26s ease, box-shadow .26s ease !important;
+    radial-gradient(circle at 82% 8%, var(--Au-10), transparent 34%),
+    linear-gradient(145deg, rgba(20,18,32,0.97), rgba(7,6,12,0.97)) !important;
+  border-color: var(--Au-14) !important;
 }
-
-.ff-program-card:hover,
 .ff-workout-card:hover {
-  transform: translateY(-5px) !important;
-  border-color: var(--Au-35, rgba(212,175,55,0.35)) !important;
-  box-shadow:
-    0 26px 70px rgba(0,0,0,0.46),
-    0 0 34px var(--Au-10, rgba(212,175,55,0.1)),
-    inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  transform: translateY(-5px);
+  border-color: var(--Au-35) !important;
+  box-shadow: 0 24px 62px rgba(0,0,0,0.42), 0 0 28px var(--Au-10) !important;
 }
-
-.ff-program-card.is-enrolled {
-  border-color: var(--sage-30, rgba(59,191,138,0.3)) !important;
-  box-shadow:
-    0 22px 64px rgba(0,0,0,0.42),
-    0 0 34px rgba(59,191,138,0.10),
-    inset 0 0 0 1px rgba(59,191,138,0.08) !important;
-}
-
-.ff-program-card.is-enrolled::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  z-index: 3;
-  background: linear-gradient(90deg, var(--sage), var(--Au-hi), transparent);
-}
-
 .ff-card-media {
   position: relative;
-  min-height: clamp(230px, 28vw, 320px);
+  display: block;
+  min-height: 220px;
   overflow: hidden;
-  background: var(--ink-1, #0c0b12);
 }
-
-.ff-card-img {
-  position: absolute;
-  inset: 0;
+.ff-card-media .card-img {
   width: 100%;
-  height: 100% !important;
-  border: 0 !important;
+  height: clamp(210px, 24vw, 280px);
   border-radius: 0 !important;
+  border: 0 !important;
   object-fit: cover;
-  transform: scale(1.02);
-  filter: saturate(1.05) contrast(1.02);
-  transition: transform .45s ease, filter .45s ease;
+  transition: transform 0.36s ease, filter 0.36s ease;
 }
-
-.ff-program-card:hover .ff-card-img,
-.ff-workout-card:hover .ff-card-img {
-  transform: scale(1.075);
-  filter: saturate(1.18) contrast(1.08);
+.ff-workout-card:hover .card-img {
+  transform: scale(1.045);
+  filter: saturate(1.08) contrast(1.05);
 }
-
-.ff-card-shade {
+.ff-card-media::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.44) 46%, rgba(7,6,12,0.94) 100%),
-    radial-gradient(circle at 20% 0%, rgba(212,175,55,0.26), transparent 32%);
-  z-index: 1;
+  background: linear-gradient(180deg, rgba(7,6,12,0.06), rgba(7,6,12,0.76));
+  pointer-events: none;
 }
-
-html.light-mode .ff-card-shade {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.34) 46%, rgba(10,8,12,0.92) 100%),
-    radial-gradient(circle at 20% 0%, rgba(212,175,55,0.20), transparent 32%);
-}
-
-.ff-card-topline {
+.ff-level-chip,
+.ff-card-play {
   position: absolute;
-  inset: 1rem 1rem auto;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .6rem;
-  flex-wrap: wrap;
-}
-
-.ff-card-badge,
-.ff-enrolled-badge {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
-  min-height: 32px;
-  padding: .42rem .72rem;
+  gap: 0.35rem;
   border-radius: 999px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .68rem;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px);
 }
-
-.ff-card-badge {
+.ff-level-chip {
+  top: 0.9rem;
+  left: 0.9rem;
+  padding: 0.42rem 0.75rem;
   color: var(--Au-hi);
-  background: rgba(7,6,12,.56);
-  border: 1px solid var(--Au-25, rgba(212,175,55,0.25));
-}
-
-.ff-card-badge.muted-badge {
-  color: var(--t4, #c4bfca);
-  border-color: rgba(255,255,255,.14);
-  background: rgba(255,255,255,.08);
-}
-
-.ff-enrolled-badge {
-  color: var(--sage);
-  background: rgba(59,191,138,.14);
-  border: 1px solid var(--sage-30, rgba(59,191,138,.30));
-  box-shadow: 0 0 18px rgba(59,191,138,.10);
-}
-
-.ff-card-media-title {
-  position: absolute;
-  left: 1.15rem;
-  right: 1.15rem;
-  bottom: 1.05rem;
-  z-index: 2;
-}
-
-.ff-card-media-title p {
-  margin: 0 0 .35rem;
-  color: var(--Au-hi);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .68rem;
+  background: rgba(7,6,12,0.62);
+  border: 1px solid var(--Au-25);
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: .16em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-shadow: 0 2px 14px rgba(0,0,0,.55);
 }
-
-.ff-card-media-title h3 {
-  margin: 0;
-  color: #fffaf0;
-  font-family: 'Josefin Sans', 'Plus Jakarta Sans', sans-serif;
-  font-weight: 300;
-  font-size: clamp(1.75rem, 4.8vw, 2.8rem);
-  line-height: .95;
-  letter-spacing: -.035em;
-  text-shadow: 0 4px 24px rgba(0,0,0,.65);
+.ff-level-chip.level-advanced { color: #ffb4b4; border-color: rgba(224,84,84,0.36); }
+.ff-level-chip.level-intermediate { color: var(--Au-hi); border-color: var(--Au-30); }
+.ff-level-chip.level-beginner { color: var(--sage); border-color: var(--sage-30); }
+.ff-card-play {
+  right: 0.9rem;
+  bottom: 0.9rem;
+  width: 44px;
+  height: 44px;
+  justify-content: center;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--Au-hi), var(--Au), var(--Au-lo));
+  box-shadow: 0 12px 30px var(--Au-20);
 }
-
 .ff-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: clamp(1rem, 2.5vw, 1.25rem);
-  min-height: 0;
-  flex: 1;
+  padding: 1.1rem !important;
+  gap: 0.65rem;
 }
-
-.ff-card-desc {
-  margin: 0;
-  color: var(--t4, #c4bfca);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .88rem;
-  line-height: 1.75;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 4.6em;
+.ff-card-eyebrow {
+  color: var(--Au-hi);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
 }
-
-.ff-meta-grid {
+.ff-workout-card h3 {
+  margin: 0 !important;
+  font-family: 'Oswald', 'Josefin Sans', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.ff-card-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .72rem;
-  margin: 0;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
 }
-
-.ff-meta-grid span {
-  position: relative;
+.ff-card-stat-grid span {
   min-width: 0;
   display: grid;
-  gap: .18rem;
-  align-content: center;
+  gap: 0.18rem;
   justify-items: start;
-  min-height: 82px;
-  padding: .78rem .72rem;
-  border: 1px solid var(--Au-14, rgba(212,175,55,0.14));
-  border-radius: 17px;
-  background:
-    radial-gradient(circle at top right, var(--Au-10, rgba(212,175,55,0.1)), transparent 48%),
-    rgba(255,255,255,.035);
-  color: var(--t1);
-  overflow: hidden;
+  padding: 0.72rem 0.68rem;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--Au-12);
+  color: var(--t2);
 }
-
-.ff-meta-grid span svg {
-  color: var(--Au);
-  margin-bottom: .12rem;
-}
-
-.ff-meta-grid span strong {
-  display: block;
-  max-width: 100%;
-  color: var(--t1);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(1rem, 3.5vw, 1.28rem);
-  line-height: 1;
-  letter-spacing: -.04em;
+.ff-card-stat-grid svg { color: var(--Au); }
+.ff-card-stat-grid strong {
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.ff-meta-grid span small {
-  color: var(--t2);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .68rem;
+  color: var(--t1);
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: .08em;
+}
+.ff-card-stat-grid small {
+  color: var(--t3);
+  font-size: 0.66rem;
   text-transform: uppercase;
+  letter-spacing: 0.09em;
 }
-
-.workout-meta-grid span:last-child strong {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .8rem;
-  letter-spacing: .01em;
-  text-transform: capitalize;
-}
-
-.ff-program-progress {
-  padding: .85rem;
-  border-radius: 16px;
-  border: 1px solid var(--sage-20, rgba(59,191,138,0.20));
-  background: rgba(59,191,138,.08);
-}
-
-.ff-program-progress-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .7rem;
-  margin-bottom: .55rem;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .76rem;
-  color: var(--t4);
-}
-
-.ff-program-progress-head strong {
-  color: var(--sage);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.ff-program-progress-track {
-  position: relative;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  overflow: hidden;
-}
-
-.ff-program-progress-track i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--sage), var(--Au-hi));
-  box-shadow: 0 0 16px rgba(59,191,138,.28);
-  transition: width .35s ease;
-}
-
-.ff-card-actions {
-  display: grid;
-  gap: .7rem;
-  margin-top: auto;
-}
-
 .ff-card-btn {
-  width: 100%;
-  min-height: 52px !important;
-  border-radius: 17px !important;
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: .01em !important;
+  margin-top: 0.95rem !important;
+  border-radius: 16px !important;
 }
 
-.ff-program-card .secondary-btn.ff-card-btn {
-  color: var(--Au-hi);
-  background: rgba(255,255,255,.045);
-  border: 1px solid var(--Au-20, rgba(212,175,55,.20));
+.session-complete-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
-
-.ff-program-card .secondary-btn.ff-card-btn:hover,
-.ff-workout-card .secondary-btn.ff-card-btn:hover {
-  background: var(--Au-10);
-  border-color: var(--Au-35);
+.session-complete-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 22px minmax(0,1fr);
+  column-gap: 0.7rem;
+  row-gap: 0.16rem;
+  align-items: center;
+  padding: 0.9rem;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--Au-14);
+  color: var(--t1);
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
 }
-
-.ff-program-card .primary-btn.ff-card-btn,
-.ff-workout-card .primary-btn.ff-card-btn {
-  background: linear-gradient(135deg, var(--Au-hi), var(--Au), var(--Au-lo));
-  color: var(--ink);
-  box-shadow: 0 12px 30px var(--Au-20);
-}
-
-.ff-program-card .primary-btn.ff-card-btn:hover,
-.ff-workout-card .primary-btn.ff-card-btn:hover {
+.session-complete-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 42px var(--Au-30);
+  border-color: var(--Au-35);
+  background: var(--Au-06);
+}
+.session-complete-card.primary {
+  background: linear-gradient(135deg, var(--Au-14), rgba(255,255,255,0.04));
+  border-color: var(--Au-30);
+}
+.session-complete-card svg {
+  grid-row: 1 / span 2;
+  color: var(--Au-hi);
+}
+.session-complete-card span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+  font-size: 0.86rem;
+}
+.session-complete-card small {
+  color: var(--t2);
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
-/* Better grid rhythm on program/workout listing pages */
-.programs-page .grid-3,
-.workouts-page .grid-3,
-.page-section > .grid.grid-3 {
-  align-items: stretch;
+@media (max-width: 980px) {
+  .ff-card-stat-grid,
+  .session-complete-actions { grid-template-columns: 1fr; }
 }
-
-/* Light mode support */
-html.light-mode .ff-program-card,
-html.light-mode .ff-workout-card {
-  background:
-    radial-gradient(circle at 90% 8%, rgba(214,173,63,0.14), transparent 34%),
-    linear-gradient(145deg, rgba(255,255,255,0.94), rgba(245,243,238,0.96)) !important;
-}
-
-html.light-mode .ff-card-body {
-  color: #111014;
-}
-
-html.light-mode .ff-card-desc,
-html.light-mode .ff-meta-grid span small {
-  color: rgba(20,20,25,.68);
-}
-
-html.light-mode .ff-meta-grid span {
-  background: rgba(255,255,255,.65);
-  border-color: rgba(142,104,28,.18);
-}
-
-html.light-mode .ff-meta-grid span strong {
-  color: #111014;
-}
-
-html.light-mode .ff-program-card .secondary-btn.ff-card-btn {
-  background: rgba(255,255,255,.82);
-  color: #111014;
-  border-color: rgba(142,104,28,.22);
-}
-
-/* Responsive card layout */
-@media (max-width: 1180px) {
-  .ff-card-media {
-    min-height: clamp(220px, 34vw, 300px);
-  }
-}
-
-@media (max-width: 760px) {
-  .ff-card-media {
-    min-height: 255px;
-  }
-
-  .ff-card-topline {
-    inset: .8rem .8rem auto;
-  }
-
-  .ff-card-media-title {
-    left: .95rem;
-    right: .95rem;
-    bottom: .9rem;
-  }
-
-  .ff-card-media-title h3 {
-    font-size: clamp(2rem, 10vw, 3rem);
-  }
-
-  .ff-card-body {
-    padding: 1rem;
-  }
-
-  .ff-meta-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: .55rem;
-  }
-
-  .ff-meta-grid span {
-    min-height: 76px;
-    padding: .68rem .55rem;
-  }
-}
-
-@media (max-width: 430px) {
-  .ff-card-media {
-    min-height: 235px;
-  }
-
-  .ff-card-badge,
-  .ff-enrolled-badge {
-    min-height: 30px;
-    padding: .36rem .58rem;
-    font-size: .6rem;
-  }
-
-  .ff-meta-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .ff-meta-grid span {
-    min-height: 58px;
-    grid-template-columns: 22px auto 1fr;
-    align-items: center;
-    justify-items: start;
-    column-gap: .45rem;
-  }
-
-  .ff-meta-grid span svg {
-    margin: 0;
-  }
-
-  .ff-meta-grid span strong {
-    font-size: 1rem;
-  }
-
-  .ff-meta-grid span small {
-    justify-self: end;
-  }
-
-  .ff-card-desc {
-    min-height: 0;
-  }
+@media (max-width: 560px) {
+  .ff-card-media { min-height: 190px; }
+  .ff-card-media .card-img { height: 205px; }
+  .ff-card-body { padding: 0.95rem !important; }
+  .session-complete-card { grid-template-columns: 20px minmax(0,1fr); padding: 0.85rem; }
 }
