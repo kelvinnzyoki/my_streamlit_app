@@ -2157,3 +2157,452 @@ body:has(.app-shell.is-sidebar-open) {
     font-size: 0.84rem !important;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   FLOWFIT PROGRAM + WORKOUT CARD PREMIUM ART PATCH
+   Replaces stacked card meta/buttons with responsive visual cards.
+═══════════════════════════════════════════════════════ */
+
+.ff-program-card,
+.ff-workout-card {
+  position: relative;
+  padding: 0 !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--Au-14, rgba(212,175,55,0.14)) !important;
+  background:
+    radial-gradient(circle at 90% 8%, var(--Au-10, rgba(212,175,55,0.1)), transparent 34%),
+    linear-gradient(145deg, rgba(20,18,32,0.96), rgba(7,6,12,0.98)) !important;
+  box-shadow:
+    0 18px 55px rgba(0,0,0,0.34),
+    inset 0 1px 0 rgba(255,255,255,0.035) !important;
+  transition: transform .26s ease, border-color .26s ease, box-shadow .26s ease !important;
+}
+
+.ff-program-card:hover,
+.ff-workout-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: var(--Au-35, rgba(212,175,55,0.35)) !important;
+  box-shadow:
+    0 26px 70px rgba(0,0,0,0.46),
+    0 0 34px var(--Au-10, rgba(212,175,55,0.1)),
+    inset 0 1px 0 rgba(255,255,255,0.05) !important;
+}
+
+.ff-program-card.is-enrolled {
+  border-color: var(--sage-30, rgba(59,191,138,0.3)) !important;
+  box-shadow:
+    0 22px 64px rgba(0,0,0,0.42),
+    0 0 34px rgba(59,191,138,0.10),
+    inset 0 0 0 1px rgba(59,191,138,0.08) !important;
+}
+
+.ff-program-card.is-enrolled::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 3;
+  background: linear-gradient(90deg, var(--sage), var(--Au-hi), transparent);
+}
+
+.ff-card-media {
+  position: relative;
+  min-height: clamp(230px, 28vw, 320px);
+  overflow: hidden;
+  background: var(--ink-1, #0c0b12);
+}
+
+.ff-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: cover;
+  transform: scale(1.02);
+  filter: saturate(1.05) contrast(1.02);
+  transition: transform .45s ease, filter .45s ease;
+}
+
+.ff-program-card:hover .ff-card-img,
+.ff-workout-card:hover .ff-card-img {
+  transform: scale(1.075);
+  filter: saturate(1.18) contrast(1.08);
+}
+
+.ff-card-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.44) 46%, rgba(7,6,12,0.94) 100%),
+    radial-gradient(circle at 20% 0%, rgba(212,175,55,0.26), transparent 32%);
+  z-index: 1;
+}
+
+html.light-mode .ff-card-shade {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.34) 46%, rgba(10,8,12,0.92) 100%),
+    radial-gradient(circle at 20% 0%, rgba(212,175,55,0.20), transparent 32%);
+}
+
+.ff-card-topline {
+  position: absolute;
+  inset: 1rem 1rem auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+
+.ff-card-badge,
+.ff-enrolled-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 32px;
+  padding: .42rem .72rem;
+  border-radius: 999px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.ff-card-badge {
+  color: var(--Au-hi);
+  background: rgba(7,6,12,.56);
+  border: 1px solid var(--Au-25, rgba(212,175,55,0.25));
+}
+
+.ff-card-badge.muted-badge {
+  color: var(--t4, #c4bfca);
+  border-color: rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+}
+
+.ff-enrolled-badge {
+  color: var(--sage);
+  background: rgba(59,191,138,.14);
+  border: 1px solid var(--sage-30, rgba(59,191,138,.30));
+  box-shadow: 0 0 18px rgba(59,191,138,.10);
+}
+
+.ff-card-media-title {
+  position: absolute;
+  left: 1.15rem;
+  right: 1.15rem;
+  bottom: 1.05rem;
+  z-index: 2;
+}
+
+.ff-card-media-title p {
+  margin: 0 0 .35rem;
+  color: var(--Au-hi);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 14px rgba(0,0,0,.55);
+}
+
+.ff-card-media-title h3 {
+  margin: 0;
+  color: #fffaf0;
+  font-family: 'Josefin Sans', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 300;
+  font-size: clamp(1.75rem, 4.8vw, 2.8rem);
+  line-height: .95;
+  letter-spacing: -.035em;
+  text-shadow: 0 4px 24px rgba(0,0,0,.65);
+}
+
+.ff-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1rem, 2.5vw, 1.25rem);
+  min-height: 0;
+  flex: 1;
+}
+
+.ff-card-desc {
+  margin: 0;
+  color: var(--t4, #c4bfca);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .88rem;
+  line-height: 1.75;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 4.6em;
+}
+
+.ff-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .72rem;
+  margin: 0;
+}
+
+.ff-meta-grid span {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  gap: .18rem;
+  align-content: center;
+  justify-items: start;
+  min-height: 82px;
+  padding: .78rem .72rem;
+  border: 1px solid var(--Au-14, rgba(212,175,55,0.14));
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at top right, var(--Au-10, rgba(212,175,55,0.1)), transparent 48%),
+    rgba(255,255,255,.035);
+  color: var(--t1);
+  overflow: hidden;
+}
+
+.ff-meta-grid span svg {
+  color: var(--Au);
+  margin-bottom: .12rem;
+}
+
+.ff-meta-grid span strong {
+  display: block;
+  max-width: 100%;
+  color: var(--t1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(1rem, 3.5vw, 1.28rem);
+  line-height: 1;
+  letter-spacing: -.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ff-meta-grid span small {
+  color: var(--t2);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.workout-meta-grid span:last-child strong {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .8rem;
+  letter-spacing: .01em;
+  text-transform: capitalize;
+}
+
+.ff-program-progress {
+  padding: .85rem;
+  border-radius: 16px;
+  border: 1px solid var(--sage-20, rgba(59,191,138,0.20));
+  background: rgba(59,191,138,.08);
+}
+
+.ff-program-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .7rem;
+  margin-bottom: .55rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .76rem;
+  color: var(--t4);
+}
+
+.ff-program-progress-head strong {
+  color: var(--sage);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.ff-program-progress-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  overflow: hidden;
+}
+
+.ff-program-progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--sage), var(--Au-hi));
+  box-shadow: 0 0 16px rgba(59,191,138,.28);
+  transition: width .35s ease;
+}
+
+.ff-card-actions {
+  display: grid;
+  gap: .7rem;
+  margin-top: auto;
+}
+
+.ff-card-btn {
+  width: 100%;
+  min-height: 52px !important;
+  border-radius: 17px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: .01em !important;
+}
+
+.ff-program-card .secondary-btn.ff-card-btn {
+  color: var(--Au-hi);
+  background: rgba(255,255,255,.045);
+  border: 1px solid var(--Au-20, rgba(212,175,55,.20));
+}
+
+.ff-program-card .secondary-btn.ff-card-btn:hover,
+.ff-workout-card .secondary-btn.ff-card-btn:hover {
+  background: var(--Au-10);
+  border-color: var(--Au-35);
+}
+
+.ff-program-card .primary-btn.ff-card-btn,
+.ff-workout-card .primary-btn.ff-card-btn {
+  background: linear-gradient(135deg, var(--Au-hi), var(--Au), var(--Au-lo));
+  color: var(--ink);
+  box-shadow: 0 12px 30px var(--Au-20);
+}
+
+.ff-program-card .primary-btn.ff-card-btn:hover,
+.ff-workout-card .primary-btn.ff-card-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px var(--Au-30);
+}
+
+/* Better grid rhythm on program/workout listing pages */
+.programs-page .grid-3,
+.workouts-page .grid-3,
+.page-section > .grid.grid-3 {
+  align-items: stretch;
+}
+
+/* Light mode support */
+html.light-mode .ff-program-card,
+html.light-mode .ff-workout-card {
+  background:
+    radial-gradient(circle at 90% 8%, rgba(214,173,63,0.14), transparent 34%),
+    linear-gradient(145deg, rgba(255,255,255,0.94), rgba(245,243,238,0.96)) !important;
+}
+
+html.light-mode .ff-card-body {
+  color: #111014;
+}
+
+html.light-mode .ff-card-desc,
+html.light-mode .ff-meta-grid span small {
+  color: rgba(20,20,25,.68);
+}
+
+html.light-mode .ff-meta-grid span {
+  background: rgba(255,255,255,.65);
+  border-color: rgba(142,104,28,.18);
+}
+
+html.light-mode .ff-meta-grid span strong {
+  color: #111014;
+}
+
+html.light-mode .ff-program-card .secondary-btn.ff-card-btn {
+  background: rgba(255,255,255,.82);
+  color: #111014;
+  border-color: rgba(142,104,28,.22);
+}
+
+/* Responsive card layout */
+@media (max-width: 1180px) {
+  .ff-card-media {
+    min-height: clamp(220px, 34vw, 300px);
+  }
+}
+
+@media (max-width: 760px) {
+  .ff-card-media {
+    min-height: 255px;
+  }
+
+  .ff-card-topline {
+    inset: .8rem .8rem auto;
+  }
+
+  .ff-card-media-title {
+    left: .95rem;
+    right: .95rem;
+    bottom: .9rem;
+  }
+
+  .ff-card-media-title h3 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .ff-card-body {
+    padding: 1rem;
+  }
+
+  .ff-meta-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .55rem;
+  }
+
+  .ff-meta-grid span {
+    min-height: 76px;
+    padding: .68rem .55rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .ff-card-media {
+    min-height: 235px;
+  }
+
+  .ff-card-badge,
+  .ff-enrolled-badge {
+    min-height: 30px;
+    padding: .36rem .58rem;
+    font-size: .6rem;
+  }
+
+  .ff-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ff-meta-grid span {
+    min-height: 58px;
+    grid-template-columns: 22px auto 1fr;
+    align-items: center;
+    justify-items: start;
+    column-gap: .45rem;
+  }
+
+  .ff-meta-grid span svg {
+    margin: 0;
+  }
+
+  .ff-meta-grid span strong {
+    font-size: 1rem;
+  }
+
+  .ff-meta-grid span small {
+    justify-self: end;
+  }
+
+  .ff-card-desc {
+    min-height: 0;
+  }
+}
