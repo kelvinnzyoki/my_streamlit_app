@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   BarChart3,
   CreditCard,
@@ -35,148 +35,120 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
 
   const displayName = user?.name || user?.fullName || 'FlowFit User';
-  const displayEmail = user?.email || 'flowfit member';
-  const initial = (displayName || displayEmail || 'F')[0].toUpperCase();
+  const email = user?.email || 'No email available';
+  const initial = (displayName || email || 'F').trim()[0]?.toUpperCase() || 'F';
   const planLabel = user?.plan || 'Free';
 
-  useEffect(() => {
-    document.body.classList.toggle('sidebar-open', open);
-    return () => document.body.classList.remove('sidebar-open');
-  }, [open]);
+  function closeSidebar() {
+    setOpen(false);
+  }
 
-  async function handleLogout() {
-    if (loggingOut) return;
-    setLoggingOut(true);
-    try {
-      await logout();
-      router.push('/auth/login');
-    } finally {
-      setLoggingOut(false);
-      setConfirmLogout(false);
-      setOpen(false);
-    }
+  async function confirmAndLogout() {
+    await logout();
+    setConfirmLogout(false);
+    closeSidebar();
+    router.push('/auth/login');
   }
 
   return (
-    <div className="app-shell ff-app-shell">
+    <div className={`app-shell ${open ? 'is-sidebar-open' : ''}`}>
       <button
-        className="mobile-menu-btn ff-mobile-menu-btn"
+        type="button"
+        className="mobile-menu-btn"
         onClick={() => setOpen(true)}
-        aria-label="Open sidebar menu"
-        aria-expanded={open}
+        aria-label="Open menu"
       >
-        <Menu size={21} />
+        <Menu size={22} />
       </button>
 
       {open && (
         <button
-          className="sidebar-backdrop ff-sidebar-backdrop"
-          onClick={() => setOpen(false)}
-          aria-label="Close sidebar menu"
+          type="button"
+          className="sidebar-backdrop sidebar-backdrop-open"
+          onClick={closeSidebar}
+          aria-label="Close menu backdrop"
         />
       )}
 
-      <aside className={`sidebar ff-sidebar ${open ? 'sidebar-open' : ''}`} aria-label="FlowFit dashboard navigation">
-        <div className="ff-sidebar-head">
-          <Link href="/dashboard" className="ff-sidebar-brand" onClick={() => setOpen(false)} aria-label="FlowFit dashboard">
-            <span className="ff-sidebar-brand-mark" aria-hidden="true">
-              <svg width="28" height="28" viewBox="0 0 42 42" fill="none">
-                <defs>
-                  <linearGradient id="ffSidebarPulse" x1="0" y1="0" x2="42" y2="42" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#F5DC83" />
-                    <stop offset="52%" stopColor="#C9A84C" />
-                    <stop offset="100%" stopColor="#8E6E28" />
-                  </linearGradient>
-                </defs>
-                <rect x="4" y="4" width="34" height="34" rx="12" stroke="url(#ffSidebarPulse)" strokeWidth="1.8" opacity="0.8" />
-                <polyline
-                  points="7,22 12,22 15,12 18,31 21,16 24,25 27,22 35,22"
-                  stroke="url(#ffSidebarPulse)"
-                  strokeWidth="2.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="ff-sidebar-wordmark">
-              <span>Flow</span>
-              <strong>Fit</strong>
-            </span>
-          </Link>
+      <aside className={`sidebar ${open ? 'sidebar-open' : ''}`} aria-label="FlowFit navigation">
+        <div className="sidebar-inner">
+          <div className="sidebar-brand-row">
+            <Link href="/dashboard" className="sidebar-logo-link" onClick={closeSidebar} aria-label="FlowFit dashboard">
+              <span className="ff-logo-mark" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1.5" y="1.5" width="41" height="41" rx="13" stroke="currentColor" strokeWidth="2" opacity="0.82" />
+                  <path
+                    d="M7 22h6l2.4-8.5 3.8 18 3.6-14.5 3.1 8 2.3-3H37"
+                    stroke="currentColor"
+                    strokeWidth="2.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="ff-logo-text">
+                <strong>FlowFit</strong>
+                <small>Home Fitness</small>
+              </span>
+            </Link>
 
-          <button className="ff-sidebar-close" onClick={() => setOpen(false)} aria-label="Close sidebar">
-            <X size={17} />
-          </button>
-        </div>
+            <button
+              type="button"
+              className="sidebar-close-btn"
+              onClick={closeSidebar}
+              aria-label="Close menu"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-        <nav className="nav-list ff-sidebar-nav">
-          {NAV.map(({ label, href, Icon }) => {
-            const active = path === href || (href !== '/dashboard' && path?.startsWith(href));
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`nav-link ff-sidebar-link ${active ? 'active' : ''}`}
-                onClick={() => setOpen(false)}
-              >
-                <Icon className="ff-sidebar-link-icon" size={18} />
-                <span className="ff-sidebar-link-text">{label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="nav-list" aria-label="Main menu">
+            {NAV.map(({ label, href, Icon }) => {
+              const active = path === href || (href !== '/dashboard' && path?.startsWith(`${href}/`));
 
-        <div className="ff-sidebar-grow" />
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`nav-link ${active ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <Icon className="nav-icon" size={19} />
+                  <span className="nav-text">{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        <section className="ff-sidebar-user-card" aria-label="Current account">
-          <div className="ff-sidebar-user-main">
-            <div className="ff-sidebar-avatar">{initial}</div>
-            <div className="ff-sidebar-user-text">
-              <strong title={displayName}>{displayName}</strong>
-              <span title={displayEmail}>{displayEmail}</span>
+          <div className="sidebar-spacer" />
+
+          <section className="sidebar-user-card" aria-label="Account summary">
+            <div className="sidebar-user-row">
+              <div className="sidebar-avatar" aria-hidden="true">{initial}</div>
+              <div className="sidebar-user-info">
+                <strong title={displayName}>{displayName}</strong>
+                <span title={email}>{email}</span>
+              </div>
             </div>
-          </div>
 
-          <div className="ff-sidebar-plan-row">
-            <span className="ff-sidebar-plan-badge">{planLabel} Plan</span>
-          </div>
+            <span className="plan-badge">{planLabel} Plan</span>
 
-          <button
-            className="ff-sidebar-logout"
-            onClick={() => setConfirmLogout(true)}
-            type="button"
-          >
-            <LogOut size={15} />
-            <span>Logout</span>
-          </button>
-        </section>
+            <button
+              type="button"
+              className="logout-btn"
+              onClick={() => setConfirmLogout(true)}
+            >
+              <LogOut size={17} />
+              <span>Logout</span>
+            </button>
+          </section>
+        </div>
       </aside>
 
-      {confirmLogout && (
-        <div className="ff-confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="logout-title">
-          <div className="ff-confirm-box">
-            <span className="ff-confirm-icon" aria-hidden="true">⚠</span>
-            <h2 id="logout-title" className="ff-confirm-title">Logout?</h2>
-            <p className="ff-confirm-msg">
-              You are about to leave your FlowFit session. Any unsaved form changes may be lost.
-            </p>
-            <div className="ff-confirm-actions">
-              <button className="ff-confirm-cancel" onClick={() => setConfirmLogout(false)} disabled={loggingOut}>
-                Stay
-              </button>
-              <button className="ff-confirm-ok danger" onClick={handleLogout} disabled={loggingOut}>
-                {loggingOut ? 'Logging out…' : 'Logout'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <main className="main-panel ff-main-panel">
-        <header className="topbar ff-topbar">
+      <main className="main-panel">
+        <header className="topbar">
           <div className="topbar-copy">
             <p className="eyebrow">FlowFit</p>
             <strong>{displayName || 'Welcome back'}</strong>
@@ -188,6 +160,26 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </header>
         {children}
       </main>
+
+      {confirmLogout && (
+        <div className="ff-confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+          <div className="ff-confirm-box">
+            <span className="ff-confirm-icon" aria-hidden="true">↪</span>
+            <h2 id="logout-title" className="ff-confirm-title">Logout?</h2>
+            <p className="ff-confirm-msg">
+              You are about to end your FlowFit session. You will need to log in again to access protected pages.
+            </p>
+            <div className="ff-confirm-actions">
+              <button type="button" className="ff-confirm-cancel" onClick={() => setConfirmLogout(false)}>
+                Stay
+              </button>
+              <button type="button" className="ff-confirm-ok danger" onClick={confirmAndLogout}>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
