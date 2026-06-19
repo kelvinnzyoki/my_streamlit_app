@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
-import './landing-premium.patch.css';
 
 const PROGRAM_PREVIEWS = [
   {
@@ -62,32 +61,6 @@ export default function HomePage() {
         <section className="ff-landing-hero-wrap">
           <div className="hero-card ff-landing-hero">
             <div className="ff-hero-content">
-              <div className="ff-hero-logo-lockup" aria-label="FlowFit premium brand mark">
-                <span className="ff-hero-logo-orb">
-                  <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="ffLogoGold" x1="8" y1="6" x2="58" y2="60">
-                        <stop offset="0%" stopColor="#fff4ad" />
-                        <stop offset="42%" stopColor="#d6ad3f" />
-                        <stop offset="100%" stopColor="#8f681c" />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      fill="url(#ffLogoGold)"
-                      d="M33.5 5.5c9.7 0 18.3 5.7 22 14.4l-8.7 2.8c-2.5-5.1-7.5-8.3-13.3-8.3-8.4 0-15 6.8-15 15.4 0 7.9 5.7 14.4 13.3 15.3v8.9C19.2 53 9.5 42.5 9.5 29.8c0-13.5 10.7-24.3 24-24.3Z"
-                    />
-                    <path
-                      fill="url(#ffLogoGold)"
-                      d="M31.8 22.5h22.7l-2.8 8.6H40.3v6.6h9.5l-2.7 8.3h-15.3V22.5Z"
-                    />
-                  </svg>
-                </span>
-                <span className="ff-hero-wordmark">
-                  <strong>Flow</strong>Fit
-                  <small>Home Performance System</small>
-                </span>
-              </div>
-
               <p className="eyebrow ff-hero-eyebrow">AI Home Fitness Platform</p>
 
               <h1 className="hero-title ff-hero-title">
