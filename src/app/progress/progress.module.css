@@ -253,3 +253,102 @@
   .categoryRow { grid-template-columns: 88px 1fr 30px; gap: 0.5rem; }
   .header h1 { font-size: clamp(2rem, 14vw, 3.2rem); }
 }
+
+/* ── FlowFit progress light-mode visibility patch ───────────────────── */
+:global(html.light-mode) .header,
+:global(html[data-theme="light"]) .header,
+:global(body.light-mode) .header {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(201,168,76,0.16), transparent 34%),
+    linear-gradient(145deg, rgba(255,255,255,0.98), rgba(246,241,228,0.96)) !important;
+  border-color: rgba(142,110,40,0.22) !important;
+  box-shadow: 0 18px 42px rgba(58,45,16,0.10) !important;
+}
+
+:global(html.light-mode) .header h1,
+:global(html[data-theme="light"]) .header h1,
+:global(body.light-mode) .header h1 {
+  color: #1b1720 !important;
+}
+
+:global(html.light-mode) .header p,
+:global(html[data-theme="light"]) .header p,
+:global(body.light-mode) .header p,
+:global(html.light-mode) .header .muted,
+:global(html[data-theme="light"]) .header .muted,
+:global(body.light-mode) .header .muted {
+  color: #514b57 !important;
+}
+
+:global(html.light-mode) .periodTabs,
+:global(html[data-theme="light"]) .periodTabs,
+:global(body.light-mode) .periodTabs,
+:global(html.light-mode) .refreshBtn,
+:global(html[data-theme="light"]) .refreshBtn,
+:global(body.light-mode) .refreshBtn {
+  background: rgba(255,255,255,0.72) !important;
+  border-color: rgba(142,110,40,0.18) !important;
+  color: #514b57 !important;
+}
+
+:global(html.light-mode) .statCard,
+:global(html.light-mode) .streakCard,
+:global(html.light-mode) .chartCard,
+:global(html.light-mode) .bioSection,
+:global(html[data-theme="light"]) .statCard,
+:global(html[data-theme="light"]) .streakCard,
+:global(html[data-theme="light"]) .chartCard,
+:global(html[data-theme="light"]) .bioSection,
+:global(body.light-mode) .statCard,
+:global(body.light-mode) .streakCard,
+:global(body.light-mode) .chartCard,
+:global(body.light-mode) .bioSection {
+  background:
+    radial-gradient(circle at top right, rgba(201,168,76,0.10), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,0.98), rgba(248,244,234,0.96)) !important;
+  border-color: rgba(142,110,40,0.18) !important;
+  box-shadow: 0 16px 40px rgba(58,45,16,0.08) !important;
+}
+
+:global(html.light-mode) .statCard p,
+:global(html.light-mode) .statHead,
+:global(html.light-mode) .cardHeader p,
+:global(html.light-mode) .bioCard p,
+:global(html.light-mode) .bioCard small,
+:global(html[data-theme="light"]) .statCard p,
+:global(html[data-theme="light"]) .statHead,
+:global(html[data-theme="light"]) .cardHeader p,
+:global(html[data-theme="light"]) .bioCard p,
+:global(html[data-theme="light"]) .bioCard small,
+:global(body.light-mode) .statCard p,
+:global(body.light-mode) .statHead,
+:global(body.light-mode) .cardHeader p,
+:global(body.light-mode) .bioCard p,
+:global(body.light-mode) .bioCard small {
+  color: #5f5964 !important;
+}
+
+:global(html.light-mode) .cardHeader h2,
+:global(html.light-mode) .streakCard span,
+:global(html[data-theme="light"]) .cardHeader h2,
+:global(html[data-theme="light"]) .streakCard span,
+:global(body.light-mode) .cardHeader h2,
+:global(body.light-mode) .streakCard span {
+  color: #1b1720 !important;
+}
+
+:global(html.light-mode) .bioCard,
+:global(html.light-mode) .barChart,
+:global(html.light-mode) .trendChart,
+:global(html.light-mode) .tableWrap,
+:global(html[data-theme="light"]) .bioCard,
+:global(html[data-theme="light"]) .barChart,
+:global(html[data-theme="light"]) .trendChart,
+:global(html[data-theme="light"]) .tableWrap,
+:global(body.light-mode) .bioCard,
+:global(body.light-mode) .barChart,
+:global(body.light-mode) .trendChart,
+:global(body.light-mode) .tableWrap {
+  background: rgba(255,255,255,0.64) !important;
+  border-color: rgba(142,110,40,0.14) !important;
+}

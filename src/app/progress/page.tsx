@@ -53,11 +53,29 @@ type Achievement = {
 type MetricSnapshot = {
   id?: string;
   date?: string;
-  weight?: number | null;
-  bmi?: number | null;
-  bodyFat?: number | null;
-  muscleMass?: number | null;
-  restingHeartRate?: number | null;
+  weight?: number | string | null;
+  bmi?: number | string | null;
+  bodyFat?: number | string | null;
+  body_fat?: number | string | null;
+  muscleMass?: number | string | null;
+  muscle_mass?: number | string | null;
+  restingHeartRate?: number | string | null;
+  resting_heart_rate?: number | string | null;
+};
+
+type UserProfilePayload = {
+  weight?: number | string | null;
+  height?: number | string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  dob?: string | null;
+  profile?: {
+    weight?: number | string | null;
+    height?: number | string | null;
+    gender?: string | null;
+    dateOfBirth?: string | null;
+    dob?: string | null;
+  } | null;
 };
 
 const PERIODS: Array<{ label: string; value: Period }> = [
@@ -170,13 +188,44 @@ function buildTrend(logs: WorkoutLog[]) {
   }));
 }
 
-function calculateBio(metrics: MetricSnapshot[], history: WorkoutLog[]) {
+function getAgeFromProfile(profile?: UserProfilePayload | null): number {
+  const raw = profile?.profile?.dateOfBirth || profile?.profile?.dob || profile?.dateOfBirth || profile?.dob;
+  if (!raw) return 30;
+  const birthDate = new Date(raw);
+  if (Number.isNaN(birthDate.getTime())) return 30;
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDelta = today.getMonth() - birthDate.getMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDate.getDate())) age -= 1;
+  return Math.max(13, Math.min(90, age));
+}
+
+function calculateBmi(weight: number, heightCm: number): number {
+  if (!weight || !heightCm) return 0;
+  const heightM = heightCm / 100;
+  return heightM > 0 ? weight / (heightM * heightM) : 0;
+}
+
+function estimateBodyFat(bmi: number, profile?: UserProfilePayload | null): number {
+  if (!bmi) return 0;
+  const age = getAgeFromProfile(profile);
+  const gender = String(profile?.profile?.gender || profile?.gender || '').toLowerCase();
+  const sexConstant = gender.startsWith('male') || gender === 'm' ? 16.2 : 5.4;
+  return Math.max(4, Math.min(60, 1.2 * bmi + 0.23 * age - sexConstant));
+}
+
+function calculateBio(metrics: MetricSnapshot[], history: WorkoutLog[], profile?: UserProfilePayload | null) {
   const sorted = [...metrics].sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
   const latest = sorted[0];
   const oldest = sorted[sorted.length - 1];
-  const weight = numberValue(latest?.weight, 0);
-  const bmi = numberValue(latest?.bmi, 0);
-  const bodyFat = numberValue(latest?.bodyFat, 0);
+  const profileData = profile?.profile || profile || {};
+
+  const weight = numberValue(latest?.weight, numberValue((profileData as any).weight, 0));
+  const height = numberValue((profileData as any).height, 0);
+  const bmi = numberValue(latest?.bmi, calculateBmi(weight, height));
+  const savedBodyFat = numberValue(latest?.bodyFat ?? latest?.body_fat, 0);
+  const bodyFat = savedBodyFat || estimateBodyFat(bmi, profile);
+  const bodyFatSource = savedBodyFat ? 'Latest saved estimate' : bodyFat ? 'Estimated from BMI profile data' : 'Add body metrics in profile';
   const trend = weight && oldest?.weight ? weight - numberValue(oldest.weight) : 0;
   const workouts = history.length;
   const minutes = history.reduce((sum, log) => sum + numberValue(log.duration), 0);
@@ -194,7 +243,7 @@ function calculateBio(metrics: MetricSnapshot[], history: WorkoutLog[]) {
     else if (bmi < 30) bmiCategory = 'Overweight';
     else bmiCategory = 'Obese';
   }
-  return { weight, bmi, bodyFat, trend, score, bmiCategory, scoreParts };
+  return { weight, height, bmi, bodyFat, bodyFatSource, trend, score, bmiCategory, scoreParts };
 }
 
 function BarChart({ data }: { data: Array<{ label: string; value: number; key?: string }> }) {
@@ -261,6 +310,7 @@ export default function ProgressPage() {
   const [streak, setStreak] = useState<any>({});
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [metrics, setMetrics] = useState<MetricSnapshot[]>([]);
+  const [profile, setProfile] = useState<UserProfilePayload | null>(null);
 
   async function loadProgress(nextPeriod = period, recalculate = false) {
     setError('');
@@ -268,12 +318,13 @@ export default function ProgressPage() {
     else setLoading(true);
 
     try {
-      const [statsRes, historyRes, streakRes, achievementRes, metricRes] = await Promise.all([
+      const [statsRes, historyRes, streakRes, achievementRes, metricRes, profileRes] = await Promise.all([
         ProgressAPI.getStats(nextPeriod),
         ProgressAPI.getWorkoutHistory(nextPeriod === '90d' ? 90 : 30),
         ProgressAPI.getStreaks(),
         recalculate && ProgressAPI.recalculateAchievements ? ProgressAPI.recalculateAchievements() : ProgressAPI.getAchievements(),
         UserAPI.getMetricsHistory ? UserAPI.getMetricsHistory(60).catch(() => ({ success: true, data: [] })) : Promise.resolve({ success: true, data: [] }),
+        UserAPI.getProfile ? UserAPI.getProfile().catch(() => ({ success: true, data: null })) : Promise.resolve({ success: true, data: null }),
       ]);
 
       setStats(unwrapData(statsRes) || {});
@@ -281,6 +332,7 @@ export default function ProgressPage() {
       setStreak(unwrapData(streakRes) || {});
       setAchievements(asArray(unwrapData(achievementRes) || achievementRes, ['achievements', 'items']).map((a) => ({ ...a })));
       setMetrics(asArray(unwrapData(metricRes) || metricRes, ['metrics', 'items']));
+      setProfile(unwrapData(profileRes) || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load progress data.');
     } finally {
@@ -298,7 +350,7 @@ export default function ProgressPage() {
   const byCategory = stats.byCategory || stats.categories || {};
   const frequency = useMemo(() => buildSeries(period, byDate, history), [period, byDate, history]);
   const trend = useMemo(() => buildTrend(history), [history]);
-  const bio = useMemo(() => calculateBio(metrics, history), [metrics, history]);
+  const bio = useMemo(() => calculateBio(metrics, history, profile), [metrics, history, profile]);
 
   const unlockedAchievements = achievements.filter((item) => item.unlocked);
   const visibleAchievements = achievements.length ? [...achievements].sort((a, b) => Number(b.unlocked) - Number(a.unlocked)).slice(0, 8) : [];
@@ -401,7 +453,7 @@ export default function ProgressPage() {
             <div className={styles.bioCard}><span>⚖️</span><p>Current BMI</p><strong>{bio.bmi ? bio.bmi.toFixed(1) : '—'}</strong><small>Latest body metric</small></div>
             <div className={styles.bioCard}><span>📊</span><p>BMI Category</p><strong>{bio.bmiCategory}</strong><small>WHO-style classification</small></div>
             <div className={styles.bioCard}><span>📉</span><p>Weight Trend</p><strong>{bio.trend ? `${bio.trend > 0 ? '+' : ''}${bio.trend.toFixed(1)} kg` : '—'}</strong><small>{bio.weight ? `Current ${bio.weight} kg` : 'Add metrics in profile'}</small></div>
-            <div className={styles.bioCard}><span>🔬</span><p>Body Fat</p><strong>{bio.bodyFat ? `${bio.bodyFat.toFixed(1)}%` : '—'}</strong><small>Latest saved estimate</small></div>
+            <div className={styles.bioCard}><span>🔬</span><p>Body Fat</p><strong>{bio.bodyFat ? `${bio.bodyFat.toFixed(1)}%` : '—'}</strong><small>{bio.bodyFatSource}</small></div>
             <div className={`${styles.bioCard} ${styles.scoreCard}`}>
               <span>🏆</span><p>Fitness Score</p><strong>{bio.score || '—'}</strong>
               <div className={styles.scoreTrack}><i style={{ width: `${Math.min(100, bio.score)}%` }} /></div>
