@@ -8,7 +8,7 @@ const PROGRAM_PREVIEWS = [
     title: 'Structured Programs',
     desc: 'Goal-based plans with weeks, days, and guided sessions.',
     meta: 'Login to view plans',
-    image: '/images/fit.webp',
+    image: '/images/exercises/sprints (1).webp',
     href: '/auth/login?redirect=/programs',
     cta: 'Login to View',
   },
@@ -16,7 +16,7 @@ const PROGRAM_PREVIEWS = [
     title: 'AI Workout Planning',
     desc: 'Generate focused training plans based on your goal and level.',
     meta: 'Create account first',
-    image: '/images/fit1.webp',
+    image: '/images/exercises/lunges (1).webp',
     href: '/auth/login?redirect=/generate-plan',
     cta: 'Generate Plan',
   },
@@ -24,7 +24,7 @@ const PROGRAM_PREVIEWS = [
     title: 'AI Coach & Analytics',
     desc: 'Ask the coach, review your progress, and adjust training with better feedback.',
     meta: 'Protected dashboard',
-    image: '/images/image.jpg',
+    image: '/images/exercises/squats.webp',
     href: '/auth/login?redirect=/ai-coach',
     cta: 'Open Coach',
   },
@@ -34,22 +34,22 @@ const WORKOUT_PREVIEWS = [
   {
     title: 'Strength',
     desc: 'Push-ups, squats, lunges, dips, and full-body strength blocks.',
-    image: '/images/exercises/pushups.webp',
+    image: '/images/exercises/pushups (1).webp',
   },
   {
     title: 'Cardio',
     desc: 'Burpees, sprints, high knees, jumping jacks, and conditioning.',
-    image: '/images/exercises/burpees.webp',
+    image: '/images/exercises/burpees (1).webp',
   },
   {
     title: 'Core',
     desc: 'Planks, crunches, leg raises, Russian twists, and stability work.',
-    image: '/images/exercises/plank.webp',
+    image: '/images/exercises/plank (1).webp',
   },
   {
     title: 'Mobility',
     desc: 'Recovery sessions, stretches, posture, and joint-friendly movement.',
-    image: '/images/exercises/downwarddog.webp',
+    image: '/images/exercises/downwarddog (1).webp',
   },
 ];
 
