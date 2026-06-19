@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
+import './landing-premium.patch.css';
 
 const PROGRAM_PREVIEWS = [
   {
