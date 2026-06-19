@@ -49,9 +49,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toast-region" aria-live="polite" aria-atomic="true">
         {toasts.map((toast) => (
-          <button key={toast.id} type="button" className={`toast toast-${toast.type}`} onClick={() => remove(toast.id)}>
-            <span className="toast-icon">{toast.type === 'success' ? '✓' : toast.type === 'error' ? '!' : toast.type === 'warning' ? '⚠' : 'i'}</span>
-            <span>{toast.message}</span>
+          <button
+            key={toast.id}
+            type="button"
+            className={`toast toast-${toast.type}`}
+            onClick={() => remove(toast.id)}
+            role="status"
+          >
+            <span className="toast-icon" aria-hidden="true">
+              {toast.type === 'success' ? '✓' : toast.type === 'error' ? '!' : toast.type === 'warning' ? '⚠' : 'i'}
+            </span>
+            <span className="toast-message">{toast.message}</span>
           </button>
         ))}
       </div>
