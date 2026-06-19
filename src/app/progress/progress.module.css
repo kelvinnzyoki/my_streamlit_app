@@ -352,3 +352,155 @@
   background: rgba(255,255,255,0.64) !important;
   border-color: rgba(142,110,40,0.14) !important;
 }
+
+
+/* ── FlowFit progress clear light-mode patch — removes yellow card hue ── */
+:global(html.light-mode) .header,
+:global(html[data-theme="light"]) .header,
+:global(body.light-mode) .header {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08) !important;
+}
+
+:global(html.light-mode) .statCard,
+:global(html.light-mode) .streakCard,
+:global(html.light-mode) .chartCard,
+:global(html.light-mode) .bioSection,
+:global(html[data-theme="light"]) .statCard,
+:global(html[data-theme="light"]) .streakCard,
+:global(html[data-theme="light"]) .chartCard,
+:global(html[data-theme="light"]) .bioSection,
+:global(body.light-mode) .statCard,
+:global(body.light-mode) .streakCard,
+:global(body.light-mode) .chartCard,
+:global(body.light-mode) .bioSection {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07) !important;
+}
+
+:global(html.light-mode) .bioCard,
+:global(html.light-mode) .barChart,
+:global(html.light-mode) .trendChart,
+:global(html.light-mode) .tableWrap,
+:global(html.light-mode) .achievementItem,
+:global(html[data-theme="light"]) .bioCard,
+:global(html[data-theme="light"]) .barChart,
+:global(html[data-theme="light"]) .trendChart,
+:global(html[data-theme="light"]) .tableWrap,
+:global(html[data-theme="light"]) .achievementItem,
+:global(body.light-mode) .bioCard,
+:global(body.light-mode) .barChart,
+:global(body.light-mode) .trendChart,
+:global(body.light-mode) .tableWrap,
+:global(body.light-mode) .achievementItem {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+
+:global(html.light-mode) .periodTabs,
+:global(html[data-theme="light"]) .periodTabs,
+:global(body.light-mode) .periodTabs,
+:global(html.light-mode) .refreshBtn,
+:global(html[data-theme="light"]) .refreshBtn,
+:global(body.light-mode) .refreshBtn {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+  color: #374151 !important;
+}
+
+:global(html.light-mode) .header h1,
+:global(html.light-mode) .cardHeader h2,
+:global(html.light-mode) .historyTable td,
+:global(html.light-mode) .workoutName,
+:global(html.light-mode) .achievementItem strong,
+:global(html[data-theme="light"]) .header h1,
+:global(html[data-theme="light"]) .cardHeader h2,
+:global(html[data-theme="light"]) .historyTable td,
+:global(html[data-theme="light"]) .workoutName,
+:global(html[data-theme="light"]) .achievementItem strong,
+:global(body.light-mode) .header h1,
+:global(body.light-mode) .cardHeader h2,
+:global(body.light-mode) .historyTable td,
+:global(body.light-mode) .workoutName,
+:global(body.light-mode) .achievementItem strong {
+  color: #111827 !important;
+}
+
+:global(html.light-mode) .header p,
+:global(html.light-mode) .statHead,
+:global(html.light-mode) .statCard p,
+:global(html.light-mode) .streakCard p,
+:global(html.light-mode) .cardHeader p,
+:global(html.light-mode) .barLabel,
+:global(html.light-mode) .categoryLabel,
+:global(html.light-mode) .trendColumn span:last-child,
+:global(html.light-mode) .bioCard p,
+:global(html.light-mode) .bioCard small,
+:global(html.light-mode) .historyTable th,
+:global(html.light-mode) .achievementItem p,
+:global(html[data-theme="light"]) .header p,
+:global(html[data-theme="light"]) .statHead,
+:global(html[data-theme="light"]) .statCard p,
+:global(html[data-theme="light"]) .streakCard p,
+:global(html[data-theme="light"]) .cardHeader p,
+:global(html[data-theme="light"]) .barLabel,
+:global(html[data-theme="light"]) .categoryLabel,
+:global(html[data-theme="light"]) .trendColumn span:last-child,
+:global(html[data-theme="light"]) .bioCard p,
+:global(html[data-theme="light"]) .bioCard small,
+:global(html[data-theme="light"]) .historyTable th,
+:global(html[data-theme="light"]) .achievementItem p,
+:global(body.light-mode) .header p,
+:global(body.light-mode) .statHead,
+:global(body.light-mode) .statCard p,
+:global(body.light-mode) .streakCard p,
+:global(body.light-mode) .cardHeader p,
+:global(body.light-mode) .barLabel,
+:global(body.light-mode) .categoryLabel,
+:global(body.light-mode) .trendColumn span:last-child,
+:global(body.light-mode) .bioCard p,
+:global(body.light-mode) .bioCard small,
+:global(body.light-mode) .historyTable th,
+:global(body.light-mode) .achievementItem p {
+  color: #4b5563 !important;
+}
+
+:global(html.light-mode) .statCard::before,
+:global(html.light-mode) .chartCard::before,
+:global(html.light-mode) .bioSection::before,
+:global(html[data-theme="light"]) .statCard::before,
+:global(html[data-theme="light"]) .chartCard::before,
+:global(html[data-theme="light"]) .bioSection::before,
+:global(body.light-mode) .statCard::before,
+:global(body.light-mode) .chartCard::before,
+:global(body.light-mode) .bioSection::before {
+  background: linear-gradient(90deg, transparent, rgba(17, 24, 39, 0.16), transparent) !important;
+  opacity: 1 !important;
+}
+
+:global(html.light-mode) .categoryTrack,
+:global(html.light-mode) .scoreTrack,
+:global(html[data-theme="light"]) .categoryTrack,
+:global(html[data-theme="light"]) .scoreTrack,
+:global(body.light-mode) .categoryTrack,
+:global(body.light-mode) .scoreTrack {
+  background: #e5e7eb !important;
+}
+
+:global(html.light-mode) .historyTable th,
+:global(html[data-theme="light"]) .historyTable th,
+:global(body.light-mode) .historyTable th {
+  background: #f3f4f6 !important;
+}
+
+:global(html.light-mode) .historyTable th,
+:global(html.light-mode) .historyTable td,
+:global(html[data-theme="light"]) .historyTable th,
+:global(html[data-theme="light"]) .historyTable td,
+:global(body.light-mode) .historyTable th,
+:global(body.light-mode) .historyTable td {
+  border-bottom-color: #e5e7eb !important;
+}
+
