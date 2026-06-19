@@ -34,7 +34,7 @@ const WORKOUT_PREVIEWS = [
   {
     title: 'Strength',
     desc: 'Push-ups, squats, lunges, dips, and full-body strength blocks.',
-    image: '/images/exercises/fit.webp',
+    image: '/images/exercises/pushups (1).webp',
   },
   {
     title: 'Cardio',
