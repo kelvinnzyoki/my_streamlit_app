@@ -34,7 +34,7 @@ const WORKOUT_PREVIEWS = [
   {
     title: 'Strength',
     desc: 'Push-ups, squats, lunges, dips, and full-body strength blocks.',
-    image: '/images/exercises/pushups (1).webp',
+    image: '/images/exercises/fit.webp',
   },
   {
     title: 'Cardio',
@@ -44,12 +44,12 @@ const WORKOUT_PREVIEWS = [
   {
     title: 'Core',
     desc: 'Planks, crunches, leg raises, Russian twists, and stability work.',
-    image: '/images/exercises/plank (1).webp',
+    image: '/images/exercises/crunches (1).webp',
   },
   {
     title: 'Mobility',
     desc: 'Recovery sessions, stretches, posture, and joint-friendly movement.',
-    image: '/images/exercises/downwarddog (1).webp',
+    image: '/images/exercises/downwarddog.webp',
   },
 ];
 
