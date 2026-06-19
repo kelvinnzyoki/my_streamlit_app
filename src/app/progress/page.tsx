@@ -197,12 +197,12 @@ function calculateBio(metrics: MetricSnapshot[], history: WorkoutLog[]) {
   return { weight, bmi, bodyFat, trend, score, bmiCategory, scoreParts };
 }
 
-function BarChart({ data }: { data: Array<{ label: string; value: number }> }) {
+function BarChart({ data }: { data: Array<{ label: string; value: number; key?: string }> }) {
   const max = Math.max(1, ...data.map((item) => item.value));
   return (
     <div className={styles.barChart}>
-      {data.map((item) => (
-        <div className={styles.barItem} key={item.key || item.label}>
+      {data.map((item, index) => (
+        <div className={styles.barItem} key={item.key ?? `${item.label}-${index}`}>
           <span className={styles.barValue}>{item.value}</span>
           <div className={styles.barTrack}>
             <div className={styles.barFill} style={{ height: `${Math.max(8, (item.value / max) * 100)}%` }} />
