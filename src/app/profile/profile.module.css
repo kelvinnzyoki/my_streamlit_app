@@ -1,0 +1,533 @@
+.profilePage {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.profileHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.profileHeroCopy,
+.profileIdentityCard,
+.formSection,
+.aiPlanSection {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--Au-14, rgba(212,175,55,0.14));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 0%, var(--Au-10, rgba(212,175,55,0.1)), transparent 34%),
+    var(--g-card);
+  box-shadow: var(--shadow, 0 20px 70px rgba(0,0,0,0.32));
+}
+
+.profileHeroCopy {
+  padding: clamp(1.35rem, 3vw, 2.2rem);
+}
+
+.profileHeroCopy h1 {
+  margin: 0.35rem 0 0.8rem;
+  font-family: 'Josefin Sans', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 300;
+  font-size: clamp(2.1rem, 5vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: 0.01em;
+}
+
+.profileHeroCopy p:last-child {
+  max-width: 720px;
+  margin-bottom: 0;
+}
+
+.profileIdentityCard {
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profileAvatar {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: radial-gradient(circle at 28% 18%, var(--Au-hi), var(--Au) 52%, var(--Au-lo));
+  color: var(--ink);
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  box-shadow: 0 14px 34px var(--Au-20, rgba(212,175,55,0.2));
+}
+
+.profileIdentityText {
+  min-width: 0;
+  display: grid;
+  gap: 0.32rem;
+}
+
+.profileIdentityText strong,
+.profileIdentityText span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileIdentityText strong {
+  color: var(--t1);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.profileIdentityText span {
+  color: var(--t2);
+  font-size: 0.82rem;
+}
+
+.profileIdentityText em {
+  width: fit-content;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--Au-20, rgba(212,175,55,0.2));
+  border-radius: 999px;
+  background: var(--Au-07, rgba(212,175,55,0.07));
+  color: var(--Au-hi);
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.profileForm {
+  display: grid;
+  gap: 1.35rem;
+  max-width: 980px;
+  width: 100%;
+}
+
+.formSection {
+  padding: clamp(1.15rem, 3vw, 2rem);
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.35rem;
+  color: var(--Au-hi);
+}
+
+.sectionTitleRow h2 {
+  margin: 0;
+  color: var(--t1);
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  font-weight: 400;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+
+.formGroup {
+  display: grid;
+  gap: 0.48rem;
+  min-width: 0;
+}
+
+.formGroup span {
+  color: var(--t2);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--white-05);
+  color: var(--t1);
+  padding: 0.95rem 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.formGroup textarea {
+  min-height: 130px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: var(--Au);
+  box-shadow: 0 0 0 3px var(--Au-15, rgba(212,175,55,0.15));
+}
+
+.metricPreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.metricPreviewCard {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.9rem;
+  border: 1px solid var(--b1);
+  border-radius: 16px;
+  background: var(--white-03);
+  min-width: 0;
+}
+
+.metricPreviewCard svg {
+  color: var(--Au);
+}
+
+.metricPreviewCard span {
+  color: var(--t2);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metricPreviewCard strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--t1);
+  font-size: 0.88rem;
+}
+
+.saveButton {
+  width: fit-content;
+  min-width: 190px;
+}
+
+.aiPlanSection {
+  margin-top: 1.5rem;
+}
+
+.aiPlanHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: clamp(1rem, 2vw, 1.5rem) clamp(1.15rem, 3vw, 2rem);
+  border-bottom: 1px solid var(--Au-14, rgba(212,175,55,0.14));
+}
+
+.aiPlanHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.aiPlanIcon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--Au-30, rgba(212,175,55,0.3));
+  border-radius: 14px;
+  background: var(--Au-07, rgba(212,175,55,0.07));
+  font-size: 1.25rem;
+}
+
+.aiPlanHeader h2 {
+  margin: 0;
+  color: var(--Au-hi);
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.aiPlanHeader p {
+  margin: 0.2rem 0 0;
+  color: var(--t2);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.aiPlanBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aiPlanBadges span,
+.syncedBadge,
+.localBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid var(--Au-25, rgba(212,175,55,0.25));
+  border-radius: 999px;
+  background: var(--Au-07, rgba(212,175,55,0.07));
+  color: var(--Au);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.syncedBadge {
+  color: var(--sage) !important;
+  border-color: var(--sage-30, rgba(59,191,138,0.3)) !important;
+  background: var(--sage-dim, rgba(59,191,138,0.12)) !important;
+}
+
+.localBadge {
+  color: var(--coral) !important;
+  border-color: rgba(224,123,84,0.25) !important;
+  background: rgba(224,123,84,0.08) !important;
+}
+
+.aiPlanBody {
+  padding: clamp(1.15rem, 3vw, 2rem);
+}
+
+.aiPlanEmpty {
+  display: grid;
+  place-items: center;
+  gap: 0.65rem;
+  min-height: 240px;
+  text-align: center;
+}
+
+.aiPlanEmpty div {
+  font-size: 2.7rem;
+  opacity: 0.55;
+}
+
+.aiPlanEmpty h3 {
+  margin: 0;
+  color: var(--t1);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.aiPlanEmpty p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--t2);
+  line-height: 1.7;
+}
+
+.aiPlanEmptyCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--Au-25, rgba(212,175,55,0.25));
+  border-radius: 999px;
+  background: var(--Au-07, rgba(212,175,55,0.07));
+  color: var(--Au-hi);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.aiPlanNameRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.aiPlanNameRow h3 {
+  margin: 0;
+  color: var(--t1);
+  font-size: clamp(1.25rem, 3vw, 1.65rem);
+  font-weight: 700;
+}
+
+.aiPlanNameRow span {
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--Au-20, rgba(212,175,55,0.2));
+  border-radius: 999px;
+  background: var(--Au-09, rgba(212,175,55,0.09));
+  color: var(--Au);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.aiPlanNameRow em {
+  margin-left: auto;
+  color: var(--t2);
+  font-style: normal;
+  font-size: 0.72rem;
+}
+
+.aiPlanChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.aiPlanChips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.32rem 0.72rem;
+  border: 1px solid var(--b3);
+  border-radius: 9px;
+  background: var(--white-03);
+  color: var(--t2);
+  font-size: 0.74rem;
+}
+
+.aiPlanChips b {
+  color: var(--t1);
+}
+
+.aiPlanBox {
+  margin-bottom: 0.9rem;
+  padding: 0.9rem 1.05rem;
+  border: 1px solid var(--b3);
+  border-radius: 13px;
+  background: var(--white-03);
+}
+
+.aiPlanBox strong,
+.aiPlanExerciseLabel {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--Au);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.aiPlanBox p {
+  margin: 0;
+  color: var(--t2);
+  line-height: 1.68;
+  font-size: 0.86rem;
+}
+
+.aiPlanExerciseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.aiPlanExerciseCard {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--b3);
+  border-radius: 14px;
+  background: var(--white-03);
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.aiPlanExerciseCard:hover {
+  border-color: var(--Au-20, rgba(212,175,55,0.2));
+  background: var(--Au-04, rgba(212,175,55,0.04));
+  transform: translateY(-2px);
+}
+
+.aiPlanExerciseCard > span {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--Au-60, rgba(212,175,55,0.6));
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.aiPlanExerciseCard h4 {
+  margin: 0 0 0.4rem;
+  color: var(--t1);
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.aiPlanExerciseCard div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.aiPlanExerciseCard em {
+  display: inline-flex;
+  padding: 0.16rem 0.46rem;
+  border: 1px solid var(--Au-14, rgba(212,175,55,0.14));
+  border-radius: 7px;
+  background: var(--Au-09, rgba(212,175,55,0.09));
+  color: var(--Au);
+  font-style: normal;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.aiPlanExerciseCard p {
+  margin: 0.45rem 0 0;
+  color: var(--t2);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  font-style: italic;
+}
+
+@media (max-width: 1024px) {
+  .profileHero {
+    grid-template-columns: 1fr;
+  }
+
+  .metricPreviewGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .profileHeroCopy h1 {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .profileIdentityCard {
+    align-items: flex-start;
+  }
+
+  .formGrid,
+  .metricPreviewGrid,
+  .aiPlanExerciseGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .saveButton {
+    width: 100%;
+  }
+
+  .aiPlanHeader {
+    align-items: flex-start;
+  }
+
+  .aiPlanNameRow em {
+    margin-left: 0;
+    width: 100%;
+  }
+}
