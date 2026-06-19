@@ -21,7 +21,7 @@ const WORKOUT_IMAGE_MAP: Record<string, string> = {
   plank: 'plank.webp',
   pushups: 'pushups.webp',
   russiantwists: 'russiantwists.webp',
-  sprints: 'sprints(1).webp',
+  sprints: 'sprints (1).webp',
   squats: 'squats.webp',
   tricepdips: 'tricepdips (1).webp',
 };
