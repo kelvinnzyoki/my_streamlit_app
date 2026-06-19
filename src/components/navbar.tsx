@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
+import '@/app/navbar-mobile.patch.css';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
