@@ -3,27 +3,27 @@ import { ArrowRight, Flame, Timer, Dumbbell } from 'lucide-react';
 import type { Workout } from '@/types/workout';
 
 const WORKOUT_IMAGE_MAP: Record<string, string> = {
-  boxjumps: 'boxjumps.webp',
-  burpees: 'burpees.webp',
-  buttkicks: 'buttkicks.webp',
-  childpose: 'childpose.webp',
-  crunches: 'crunches.webp',
+  boxjumps: 'boxjumps (1).webp',
+  burpees: 'burpees (1).webp',
+  buttkicks: 'buttkicks (1).webp',
+  childpose: 'childpose (1).webp',
+  crunches: 'crunches (1).webp',
   downwarddog: 'downwarddog.webp',
   glutebridges: 'glutebridges.webp',
-  highknees: 'highknees.webp',
+  highknees: 'highknees (1).webp',
   hipflexor: 'hipflexor.webp',
   jumpingjacks: 'jumpingjacks.webp',
   jumpsquats: 'jumpsquats.webp',
   legraises: 'legraises.webp',
-  lunges: 'lunges.webp',
-  mountainclimbers: 'mountainclimbers.webp',
+  lunges: 'lunges (1).webp',
+  mountainclimbers: 'mountainclimbers (1).webp',
   pikepushups: 'pikepushups.webp',
   plank: 'plank.webp',
   pushups: 'pushups.webp',
   russiantwists: 'russiantwists.webp',
-  sprints: 'sprints.webp',
+  sprints: 'sprints(1).webp',
   squats: 'squats.webp',
-  tricepdips: 'tricepdips.webp',
+  tricepdips: 'tricepdips (1).webp',
 };
 
 function clean(value?: string | null) {
