@@ -6,7 +6,7 @@ const WORKOUT_IMAGE_MAP: Record<string, string> = {
   boxjumps: 'boxjumps1 (1).webp',
   burpees: 'burpees1 (1).webp',
   buttkicks: 'buttkicks1 (1).webp',
-  childpose: 'childpose1 (1).webp',
+  childpose: 'childpose (1).webp',
   crunches: 'crunches1 (1).webp',
   downwarddog: 'downwarddog.webp',
   glutebridges: 'glutebridges.webp',
