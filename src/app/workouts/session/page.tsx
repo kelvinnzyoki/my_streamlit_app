@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, ExternalLink, Pause, Play, Plus, RotateCcw, X } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import { getWorkoutById, logWorkout } from '@/lib/api';
@@ -26,6 +26,7 @@ function numberParam(value: string | null): number | undefined {
 
 function SessionContent() {
   const params = useSearchParams();
+  const router = useRouter();
 
   const id = params.get('id') || params.get('guide') || 'pushups';
   const guide = params.get('guide') || id;
@@ -178,23 +179,29 @@ function SessionContent() {
       intervalRef.current = null;
       setRunning(false);
       setSaved(true);
+
+      if (isProgramSession) {
+        showToast({
+          type: 'success',
+          title: 'Workout logged',
+          message: 'Returning to your program so this workout can be marked as logged.',
+        });
+        window.setTimeout(() => {
+          router.replace(returnUrl);
+        }, 550);
+        return;
+      }
+
       showToast({
         type: 'success',
         title: 'Workout saved',
         message: 'Choose where to go next. Your workout has been recorded successfully.',
-        actions: isProgramSession
-          ? [
-              { label: 'Continue Program', href: returnUrl, primary: true },
-              { label: 'Progress', href: '/progress' },
-              { label: 'Workouts', href: '/workouts' },
-              { label: 'Dashboard', href: '/dashboard' },
-            ]
-          : [
-              { label: 'View Progress', href: '/progress', primary: true },
-              { label: 'Another Workout', href: '/workouts' },
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Programs', href: '/programs' },
-            ],
+        actions: [
+          { label: 'View Progress', href: '/progress', primary: true },
+          { label: 'Another Workout', href: '/workouts' },
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Programs', href: '/programs' },
+        ],
       });
     } catch (err) {
       showToast({
@@ -322,7 +329,9 @@ function SessionContent() {
                 {saving ? 'Saving…' : saved ? 'Saved' : 'Save Workout'}
               </button>
               <p className="muted" style={{ margin: '0.75rem 0 0', fontSize: '0.8rem', textAlign: 'center' }}>
-                Start the timer before saving. After saving, four navigation options appear as a toast.
+                {isProgramSession
+                  ? 'Start the timer before saving. After saving, you will return to the program detail page automatically.'
+                  : 'Start the timer before saving. After saving, four navigation options appear as a toast.'}
               </p>
             </div>
           </div>
