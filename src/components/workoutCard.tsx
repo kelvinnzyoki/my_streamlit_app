@@ -10,7 +10,7 @@ const WORKOUT_IMAGE_MAP: Record<string, string> = {
   crunches: 'crunches1 (1).webp',
   downwarddog: 'downwarddog.webp',
   glutebridges: 'glutebridges.webp',
-  highknees: 'highknees (1).webp',
+  highknees: 'highknees.webp',
   hipflexor: 'hipflexor.webp',
   jumpingjacks: 'jumpingjacks.webp',
   jumpsquats: 'jumpsquats.webp',
