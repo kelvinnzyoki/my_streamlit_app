@@ -4,12 +4,12 @@ import type { Program } from '@/types/program';
 
 const PROGRAM_IMAGE_BY_CATEGORY: Record<string, string> = {
   strength: '/images/exercises/pushups.webp',
-  hiit: '/images/exercises/burpees.webp',
+  hiit: '/images/exercises/burpees1 (1).webp',
   core: '/images/exercises/plank.webp',
   mobility: '/images/exercises/downwarddog.webp',
-  conditioning: '/images/exercises/sprints.webp',
+  conditioning: '/images/exercises/sprints (1).webp',
   cardio: '/images/exercises/highknees.webp',
-  general_fitness: '/images/fit1.webp',
+  general_fitness: '/images/fit1 (1).webp',
 };
 
 function pickProgramImage(program: any) {
