@@ -7,7 +7,6 @@ import {
   BarChart3,
   Bot,
   Clock,
-  CreditCard,
   Dumbbell,
   Flame,
   Grid3X3,
@@ -25,7 +24,6 @@ const QUICK_NAV = [
   { label: 'Workouts', href: '/workouts', Icon: Dumbbell, copy: 'Start a protected server session' },
   { label: 'Programs', href: '/programs', Icon: Grid3X3, copy: 'View your server plans' },
   { label: 'Progress', href: '/progress', Icon: BarChart3, copy: 'Track real workout logs' },
-  { label: 'Subscription', href: '/subscription', Icon: CreditCard, copy: 'Manage your active plan' },
 ] as const;
 
 export default function DashboardPage() {
@@ -46,13 +44,32 @@ export default function DashboardPage() {
   }, []);
 
   const stats = dashboard?.stats || dashboard?.summary || dashboard || {};
-  const weekly: number[] = progress?.weekly || progress?.daily || dashboard?.weekly || [];
+  const streaks = dashboard?.streak || dashboard?.streaks || stats?.streaks || {};
+  const summary = progress?.summary || {};
+  const weekly: number[] = progress?.weekly || progress?.daily || dashboard?.weekly || stats?.weekly || [];
+
+  const streakValue =
+    stats.currentStreak ?? stats.streak ?? stats.totalStreak ??
+    streaks.currentStreak ?? streaks.streak ?? streaks.totalStreak ??
+    summary.streak ?? 0;
+
+  const workoutValue =
+    stats.completedWorkouts ?? stats.totalWorkouts ?? stats.workouts ?? stats.sessions ??
+    summary.workouts ?? summary.sessions ?? 0;
+
+  const minuteValue =
+    stats.totalMinutes ?? stats.minutes ?? stats.totalDuration ?? stats.durationMinutes ??
+    stats.workoutMinutes ?? summary.minutes ?? summary.totalMinutes ?? 0;
+
+  const calorieValue =
+    stats.totalCalories ?? stats.calories ?? stats.caloriesBurned ??
+    summary.calories ?? summary.totalCalories ?? 0;
 
   const statCards = [
-    { label: 'Streak', value: stats.streak ?? stats.totalStreak ?? 0, unit: 'days', Icon: Trophy },
-    { label: 'Workouts Done', value: stats.completedWorkouts ?? stats.totalWorkouts ?? stats.workouts ?? 0, unit: 'sessions', Icon: Dumbbell },
-    { label: 'Total Minutes', value: stats.totalMinutes ?? stats.minutes ?? 0, unit: 'min', Icon: Clock },
-    { label: 'Calories Burned', value: stats.totalCalories ?? stats.calories ?? stats.caloriesBurned ?? 0, unit: 'kcal', Icon: Flame },
+    { label: 'Streak', value: streakValue, unit: 'days', Icon: Trophy },
+    { label: 'Workouts Done', value: workoutValue, unit: 'sessions', Icon: Dumbbell },
+    { label: 'Total Minutes', value: minuteValue, unit: 'min', Icon: Clock },
+    { label: 'Calories Burned', value: calorieValue, unit: 'kcal', Icon: Flame },
   ];
 
   return (
@@ -70,7 +87,7 @@ export default function DashboardPage() {
 
           <div className="dashboard-hero-orbit" aria-hidden="true">
             <span />
-            <strong>{loading ? '—' : formatNumber(stats.completedWorkouts ?? stats.totalWorkouts ?? stats.workouts ?? 0)}</strong>
+            <strong>{loading ? '—' : formatNumber(workoutValue)}</strong>
             <small>sessions</small>
           </div>
         </div>
