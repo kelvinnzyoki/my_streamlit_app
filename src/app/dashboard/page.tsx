@@ -2,7 +2,19 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { BarChart3, Bot, Clock, CreditCard, Dumbbell, Flame, Grid3X3, Sparkles, Trophy } from 'lucide-react';
+import {
+  ArrowRight,
+  BarChart3,
+  Bot,
+  Clock,
+  CreditCard,
+  Dumbbell,
+  Flame,
+  Grid3X3,
+  Sparkles,
+  Trophy,
+  Zap,
+} from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import ProgressChart from '@/components/progressChart';
 import { getDashboard, getProgress, getWorkouts } from '@/lib/api';
@@ -13,8 +25,6 @@ const QUICK_NAV = [
   { label: 'Workouts', href: '/workouts', Icon: Dumbbell, copy: 'Start a protected server session' },
   { label: 'Programs', href: '/programs', Icon: Grid3X3, copy: 'View your server plans' },
   { label: 'Progress', href: '/progress', Icon: BarChart3, copy: 'Track real workout logs' },
-  { label: 'AI Coach', href: '/coach', Icon: Bot, copy: 'Ask your personal coach' },
-  { label: 'Generate Plan', href: '/generate-plan', Icon: Sparkles, copy: 'Create a new server plan' },
   { label: 'Subscription', href: '/subscription', Icon: CreditCard, copy: 'Manage your active plan' },
 ] as const;
 
@@ -49,20 +59,63 @@ export default function DashboardPage() {
     <DashboardShell>
       <section className="page-section dashboard-elite">
         <div className="dashboard-hero-strip">
-          <p className="eyebrow">Dashboard</p>
-          <h1>Your FlowFit Control Centre</h1>
-          <p className="muted">Live server-powered workout data, progress analytics, AI coaching, and program management in one protected workspace.</p>
+          <div className="dashboard-hero-copy">
+            <p className="eyebrow">Dashboard</p>
+            <h1>Your FlowFit Control Centre</h1>
+            <p className="muted">
+              Server-powered workout data, progress analytics, AI coaching, and program management
+              in one premium protected workspace.
+            </p>
+          </div>
+
+          <div className="dashboard-hero-orbit" aria-hidden="true">
+            <span />
+            <strong>{loading ? '—' : formatNumber(stats.completedWorkouts ?? stats.totalWorkouts ?? stats.workouts ?? 0)}</strong>
+            <small>sessions</small>
+          </div>
         </div>
 
         <div className="grid grid-4 elite-stat-grid">
           {statCards.map(({ label, value, unit, Icon }) => (
             <div key={label} className="stat-card elite-stat-card">
-              <Icon size={18} />
+              <div className="elite-stat-icon"><Icon size={18} /></div>
               <div className="stat-value">{loading ? '—' : formatNumber(value)}</div>
               <p className="stat-label">{label}</p>
               <small>{unit}</small>
             </div>
           ))}
+        </div>
+
+        <div className="grid grid-2 dashboard-ai-grid">
+          <Link href="/coach" className="premium-card dashboard-ai-card dashboard-ai-coach-card">
+            <div className="dashboard-ai-icon"><Bot size={24} /></div>
+            <div>
+              <p className="eyebrow">AI Personal Coach</p>
+              <h2>Get coaching that feels personal</h2>
+              <p className="muted">
+                Ask about form, recovery, motivation, nutrition direction, and the best next workout
+                based on your FlowFit activity.
+              </p>
+            </div>
+            <span className="dashboard-ai-cta">
+              Open Coach <ArrowRight size={16} />
+            </span>
+          </Link>
+
+          <Link href="/generate-plan" className="premium-card dashboard-ai-card dashboard-ai-plan-card">
+            <div className="dashboard-ai-icon"><Sparkles size={24} /></div>
+            <div>
+              <p className="eyebrow">Generate Workout Plan</p>
+              <h2>Create a fresh training plan</h2>
+              <p className="muted">
+                Generate goal-based workouts from your level, time, focus, and equipment. Save the plan
+                to continue training from your dashboard.
+              </p>
+            </div>
+            <span className="dashboard-ai-cta">
+              Generate Plan <ArrowRight size={16} />
+            </span>
+          </Link>
         </div>
 
         <div className="quick-nav quick-nav-artistic">
@@ -78,7 +131,10 @@ export default function DashboardPage() {
         <div className="grid grid-2 dashboard-lower-grid">
           <div className="premium-card artistic-panel">
             <div className="panel-headline">
-              <h2>Weekly Activity</h2>
+              <div>
+                <p className="eyebrow">Analytics</p>
+                <h2>Weekly Activity</h2>
+              </div>
               <Link href="/progress">View all →</Link>
             </div>
             <ProgressChart values={weekly} label="Sessions" />
@@ -86,22 +142,31 @@ export default function DashboardPage() {
 
           <div className="premium-card artistic-panel">
             <div className="panel-headline">
-              <h2>Server Quick Start</h2>
+              <div>
+                <p className="eyebrow">Quick Start</p>
+                <h2>Server Workouts</h2>
+              </div>
               <Link href="/workouts">All workouts →</Link>
             </div>
+
             {featured.length > 0 ? (
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <div className="dashboard-workout-stack">
                 {featured.map((w) => (
-                  <Link key={w.id} href={`/workouts/session?id=${w.slug || w.id}`} className="mini-link">
+                  <Link key={w.id} href={`/workouts/session?id=${w.slug || w.id}`} className="mini-link workout-art-link">
                     <div>
                       <strong>{w.name}</strong>
                       <p className="muted" style={{ margin: 0, fontSize: '0.78rem' }}>{w.category || w.level || 'Workout'}</p>
                     </div>
-                    <span style={{ color: 'var(--Au)' }}>{w.duration || 10} min</span>
+                    <span>{w.duration || 10} min</span>
                   </Link>
                 ))}
               </div>
-            ) : <p className="muted">Server workout recommendations will appear here after your first logs.</p>}
+            ) : (
+              <div className="dashboard-empty-state">
+                <Zap size={20} />
+                <p className="muted">Server workout recommendations will appear here after your first logs.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
