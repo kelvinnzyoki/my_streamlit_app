@@ -1,0 +1,56 @@
+.page { display: grid; gap: 1.25rem; }
+.hero {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem;
+  padding: clamp(1.25rem, 3vw, 2.2rem); border: 1px solid var(--Au-14); border-radius: 26px;
+  background: radial-gradient(circle at 86% 8%, var(--Au-12), transparent 32%), linear-gradient(145deg, rgba(20,18,32,.96), rgba(7,6,12,.98));
+  box-shadow: 0 22px 58px rgba(0,0,0,.32); overflow: hidden;
+}
+.hero h1 { margin: .25rem 0 .65rem; font-size: clamp(2rem, 5vw, 4.4rem); line-height: .98; }
+.hero p { max-width: 720px; }
+.heroBadge { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1rem; border-radius: 999px; border: 1px solid var(--Au-20); background: var(--Au-10); color: var(--Au-hi); font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; }
+.notice { display: flex; align-items: center; gap: .65rem; padding: .9rem 1rem; border-radius: 16px; border: 1px solid var(--b1); }
+.noticeError { color: #ffc1c1; background: var(--red-08); border-color: var(--red-30); }
+.noticeSuccess { color: var(--sage); background: var(--sage-dim); border-color: var(--sage-30); }
+.shellGrid { align-items: start; }
+.formCard, .planCard { display: grid; gap: 1.15rem; }
+.cardTitleRow { display: flex; align-items: flex-start; gap: .75rem; }
+.cardTitleRow svg { color: var(--Au); flex-shrink: 0; margin-top: .18rem; }
+.cardTitleRow h2 { margin: 0 0 .25rem; }
+.goalGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.goalCard { text-align: left; padding: .9rem; border-radius: 16px; border: 1px solid var(--b1); background: var(--white-03); color: var(--t1); display: grid; gap: .3rem; }
+.goalCard strong { color: var(--t1); }
+.goalCard span { color: var(--t2); font-size: .78rem; line-height: 1.45; }
+.goalCard:hover, .activeGoal { border-color: var(--Au-30); background: var(--Au-10); }
+.activeGoal strong { color: var(--Au-hi); }
+.twoFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+.formStats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+.formStats div { display: grid; gap: .2rem; padding: .9rem; border-radius: 16px; border: 1px solid var(--b1); background: var(--white-03); }
+.formStats svg { color: var(--Au); }
+.formStats strong { color: var(--t1); }
+.formStats span { color: var(--t2); font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; }
+.emptyPlan { min-height: 360px; display: grid; place-items: center; align-content: center; gap: .65rem; text-align: center; border: 1px dashed var(--b1); border-radius: 22px; background: var(--white-03); padding: 2rem; }
+.emptyPlan svg { color: var(--Au); opacity: .75; }
+.planMetaGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+.planMetaGrid span { display: grid; gap: .2rem; padding: .85rem; border-radius: 15px; border: 1px solid var(--b1); background: var(--white-03); color: var(--t2); font-size: .82rem; }
+.planMetaGrid strong { color: var(--Au-hi); text-transform: uppercase; letter-spacing: .08em; font-size: .68rem; }
+.planSection { display: grid; gap: .7rem; }
+.planSection h3 { margin: 0; }
+.planSection ul { margin: 0; padding-left: 1.1rem; color: var(--t2); line-height: 1.75; }
+.exerciseList { display: grid; gap: .65rem; }
+.exerciseItem { display: flex; align-items: center; justify-content: space-between; gap: .85rem; padding: .9rem; border-radius: 16px; border: 1px solid var(--b1); background: var(--white-03); }
+.exerciseItem div { min-width: 0; }
+.exerciseItem span { color: var(--Au); font-family: var(--f-mono); font-size: .75rem; margin-right: .55rem; }
+.exerciseItem strong { color: var(--t1); }
+.exerciseItem p { color: var(--t2); margin: .3rem 0 0; font-size: .78rem; line-height: 1.45; }
+.exerciseItem small { color: var(--Au-hi); flex-shrink: 0; text-align: right; }
+.notesGrid { display: grid; gap: .65rem; }
+.notesGrid p { margin: 0; color: var(--t2); border: 1px solid var(--b1); background: var(--white-03); border-radius: 15px; padding: .85rem; line-height: 1.6; }
+.actionRow { display: grid; grid-template-columns: 1.3fr .7fr; gap: .75rem; }
+.spin { animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 980px) { .hero { align-items: stretch; flex-direction: column; } .heroBadge { width: fit-content; } }
+@media (max-width: 760px) { .goalGrid, .twoFields, .formStats, .planMetaGrid, .actionRow { grid-template-columns: 1fr; } .exerciseItem { align-items: flex-start; flex-direction: column; } .exerciseItem small { text-align: left; } }
+@media (max-width: 520px) { .hero, .formCard, .planCard { border-radius: 20px; } .heroBadge { width: 100%; justify-content: center; } }
+:global(html.light-mode) .hero, :global(html[data-theme='light']) .hero { background: linear-gradient(145deg, #fff, #f8fafc) !important; border-color: rgba(15,23,42,.10); box-shadow: 0 18px 42px rgba(15,23,42,.08); }
+:global(html.light-mode) .goalCard, :global(html.light-mode) .emptyPlan, :global(html.light-mode) .formStats div, :global(html.light-mode) .exerciseItem, :global(html.light-mode) .notesGrid p, :global(html.light-mode) .planMetaGrid span,
+:global(html[data-theme='light']) .goalCard, :global(html[data-theme='light']) .emptyPlan, :global(html[data-theme='light']) .formStats div, :global(html[data-theme='light']) .exerciseItem, :global(html[data-theme='light']) .notesGrid p, :global(html[data-theme='light']) .planMetaGrid span { background: #fff !important; border-color: #e5e7eb !important; }
