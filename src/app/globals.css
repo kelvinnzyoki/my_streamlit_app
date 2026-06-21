@@ -4163,3 +4163,192 @@ body.light-mode .dashboard-ai-card .muted {
     backdrop-filter: blur(10px) !important;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   PATCH — Light mode AI cards, toast visibility, sidebar/nav cleanup
+   Appended only; preserves existing globals.css.
+════════════════════════════════════════════════════════ */
+
+/* Sidebar: clear, fully visible in light mode */
+html.light-mode .sidebar,
+html[data-theme="light"] .sidebar,
+body.light-mode .sidebar {
+  background: rgba(255,255,255,0.96) !important;
+  border-right-color: rgba(15,23,42,0.12) !important;
+  box-shadow: 18px 0 60px rgba(15,23,42,0.08) !important;
+  color: #111827 !important;
+}
+
+html.light-mode .sidebar .nav-link,
+html[data-theme="light"] .sidebar .nav-link,
+body.light-mode .sidebar .nav-link {
+  color: #475569 !important;
+  border-color: transparent !important;
+}
+
+html.light-mode .sidebar .nav-link:hover,
+html[data-theme="light"] .sidebar .nav-link:hover,
+body.light-mode .sidebar .nav-link:hover {
+  color: #111827 !important;
+  background: rgba(15,23,42,0.055) !important;
+  border-color: rgba(15,23,42,0.08) !important;
+}
+
+html.light-mode .sidebar .nav-link.active,
+html[data-theme="light"] .sidebar .nav-link.active,
+body.light-mode .sidebar .nav-link.active {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #111827, #334155) !important;
+  box-shadow: 0 14px 30px rgba(15,23,42,0.16) !important;
+}
+
+html.light-mode .sidebar-user-card,
+html[data-theme="light"] .sidebar-user-card,
+body.light-mode .sidebar-user-card {
+  background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  box-shadow: 0 12px 34px rgba(15,23,42,0.08) !important;
+}
+
+html.light-mode .sidebar-user-info strong,
+html[data-theme="light"] .sidebar-user-info strong,
+body.light-mode .sidebar-user-info strong,
+html.light-mode .ff-logo-text strong,
+html[data-theme="light"] .ff-logo-text strong,
+body.light-mode .ff-logo-text strong,
+html.light-mode .ff-logo-text small,
+html[data-theme="light"] .ff-logo-text small,
+body.light-mode .ff-logo-text small {
+  color: #111827 !important;
+  -webkit-text-fill-color: currentColor !important;
+  background: none !important;
+}
+
+html.light-mode .sidebar-user-info span,
+html[data-theme="light"] .sidebar-user-info span,
+body.light-mode .sidebar-user-info span {
+  color: #64748b !important;
+}
+
+html.light-mode .plan-badge,
+html[data-theme="light"] .plan-badge,
+body.light-mode .plan-badge {
+  background: rgba(15,23,42,0.055) !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  color: #334155 !important;
+}
+
+/* Dashboard AI cards: visible and attractive in light mode */
+html.light-mode .dashboard-ai-card,
+html[data-theme="light"] .dashboard-ai-card,
+body.light-mode .dashboard-ai-card {
+  border-color: rgba(15,23,42,0.10) !important;
+  box-shadow: 0 18px 45px rgba(15,23,42,0.08) !important;
+}
+
+html.light-mode .dashboard-ai-coach-card,
+html[data-theme="light"] .dashboard-ai-coach-card,
+body.light-mode .dashboard-ai-coach-card {
+  background:
+    radial-gradient(circle at 90% 10%, rgba(99,102,241,0.14), transparent 34%),
+    linear-gradient(145deg, #ffffff, #eef2ff) !important;
+}
+
+html.light-mode .dashboard-ai-plan-card,
+html[data-theme="light"] .dashboard-ai-plan-card,
+body.light-mode .dashboard-ai-plan-card {
+  background:
+    radial-gradient(circle at 90% 10%, rgba(20,184,166,0.16), transparent 34%),
+    linear-gradient(145deg, #ffffff, #ecfeff) !important;
+}
+
+html.light-mode .dashboard-ai-card h2,
+html[data-theme="light"] .dashboard-ai-card h2,
+body.light-mode .dashboard-ai-card h2,
+html.light-mode .dashboard-ai-card .eyebrow,
+html[data-theme="light"] .dashboard-ai-card .eyebrow,
+body.light-mode .dashboard-ai-card .eyebrow {
+  color: #111827 !important;
+}
+
+html.light-mode .dashboard-ai-card .muted,
+html[data-theme="light"] .dashboard-ai-card .muted,
+body.light-mode .dashboard-ai-card .muted {
+  color: #475569 !important;
+}
+
+html.light-mode .dashboard-ai-icon,
+html[data-theme="light"] .dashboard-ai-icon,
+body.light-mode .dashboard-ai-icon {
+  color: #111827 !important;
+  background: rgba(255,255,255,0.74) !important;
+  border-color: rgba(15,23,42,0.10) !important;
+  box-shadow: 0 10px 26px rgba(15,23,42,0.08) !important;
+}
+
+html.light-mode .dashboard-ai-cta,
+html[data-theme="light"] .dashboard-ai-cta,
+body.light-mode .dashboard-ai-cta {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #111827, #334155) !important;
+  box-shadow: 0 12px 26px rgba(15,23,42,0.16) !important;
+}
+
+/* Toast/session modals: readable in light mode */
+html.light-mode .toast,
+html.light-mode .toast-region .toast,
+html.light-mode .ff-toast-viewport .toast,
+html.light-mode .ff-session-toast,
+html[data-theme="light"] .toast,
+html[data-theme="light"] .toast-region .toast,
+html[data-theme="light"] .ff-toast-viewport .toast,
+html[data-theme="light"] .ff-session-toast,
+body.light-mode .toast,
+body.light-mode .toast-region .toast,
+body.light-mode .ff-toast-viewport .toast,
+body.light-mode .ff-session-toast {
+  background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
+  color: #111827 !important;
+  border-color: rgba(15,23,42,0.12) !important;
+  box-shadow: 0 34px 90px rgba(15,23,42,0.20), 0 0 0 1px rgba(15,23,42,0.04) inset !important;
+}
+
+html.light-mode .toast span:not(.toast-icon),
+html.light-mode .ff-session-toast h3,
+html.light-mode .ff-session-toast p,
+html.light-mode .ff-session-toast .ff-toast-kicker,
+html[data-theme="light"] .toast span:not(.toast-icon),
+html[data-theme="light"] .ff-session-toast h3,
+html[data-theme="light"] .ff-session-toast p,
+html[data-theme="light"] .ff-session-toast .ff-toast-kicker,
+body.light-mode .toast span:not(.toast-icon),
+body.light-mode .ff-session-toast h3,
+body.light-mode .ff-session-toast p,
+body.light-mode .ff-session-toast .ff-toast-kicker {
+  color: #111827 !important;
+}
+
+html.light-mode .ff-toast-close,
+html[data-theme="light"] .ff-toast-close,
+body.light-mode .ff-toast-close {
+  color: #111827 !important;
+  background: rgba(15,23,42,0.06) !important;
+  border-color: rgba(15,23,42,0.10) !important;
+}
+
+html.light-mode .ff-toast-actions .secondary-btn,
+html[data-theme="light"] .ff-toast-actions .secondary-btn,
+body.light-mode .ff-toast-actions .secondary-btn {
+  color: #111827 !important;
+  background: #ffffff !important;
+  border-color: rgba(15,23,42,0.14) !important;
+}
+
+@media (max-width: 760px) {
+  html.light-mode .dashboard-ai-card,
+  html[data-theme="light"] .dashboard-ai-card,
+  body.light-mode .dashboard-ai-card {
+    min-height: 220px !important;
+  }
+}
