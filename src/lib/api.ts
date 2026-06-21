@@ -844,11 +844,14 @@ export const ProgramsAPI = {
     return { ...response, success: response?.success !== false, data: enrollment, enrollment };
   },
 
-  async getAiProgram() { return apiRequest<any>('/programs/ai-generated'); },
+  async getAiProgram() {
+    return apiRequest<any>('/ai/saved-program');
+  },
+
   async saveAiProgram(payload: any) {
-    return apiRequest<any>('/programs', {
+    return apiRequest<any>('/ai/save-program', {
       method: 'POST',
-      body: JSON.stringify({ ...payload, type: 'ai_generated' }),
+      body: JSON.stringify(payload),
     });
   },
 };
@@ -873,12 +876,24 @@ export async function getProgramById(id: string) {
   }
 }
 
-export const generateWorkoutPlan = (body: any) => apiRequest<any>('/ai/generate-workout-plan', {
+export const generateWorkoutPlan = (body: any) => apiRequest<any>('/ai/generate-workout', {
   method: 'POST',
-  body: JSON.stringify(body),
-}).catch(() => apiRequest<any>('/programs', { method: 'POST', body: JSON.stringify({ ...body, type: 'ai_generated' }) }));
+  body: JSON.stringify({
+    goal: body?.goal || body?.fitnessGoal || 'general_fitness',
+    fitnessLevel: body?.fitnessLevel || body?.level || 'beginner',
+    equipment: Array.isArray(body?.equipment) ? body.equipment : ['bodyweight'],
+    sessionDuration: Number(body?.sessionDuration || body?.minutes || 30),
+    trainingDaysPerWeek: Number(body?.trainingDaysPerWeek || body?.daysPerWeek || 3),
+    limitations: body?.limitations || body?.injuries || undefined,
+  }),
+});
 
-export const saveAiProgram = ProgramsAPI.saveAiProgram;
+export const saveAiProgram = (payload: any) => apiRequest<any>('/ai/save-program', {
+  method: 'POST',
+  body: JSON.stringify(payload),
+});
+
+export const getSavedAiProgram = () => apiRequest<any>('/ai/saved-program');
 
 /* ───────────────────── Progress ───────────────────── */
 
@@ -1024,9 +1039,11 @@ export const markNotificationRead = NotificationsAPI.markRead;
 
 export const askCoach = (message: string, context?: any) => apiRequest<any>('/ai/coach', {
   method: 'POST',
-  body: JSON.stringify({ message, ...context }),
+  body: JSON.stringify({ message, ...(context || {}) }),
 });
-export const getCoachHistory = () => apiRequest<any>('/ai/coach/history').catch(() => []);
+
+export const getCoachHistory = () =>
+  apiRequest<any>('/ai/coach/history').catch(() => ({ success: true, data: [] }));
 
 export function isAuthenticated() {
   return !!TokenManager.getAccessToken() || TokenManager.hasSession();
