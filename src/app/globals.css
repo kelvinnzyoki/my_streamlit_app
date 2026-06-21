@@ -4352,3 +4352,508 @@ body.light-mode .ff-toast-actions .secondary-btn {
     min-height: 220px !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   FLOWFIT SURGICAL MODAL + TOAST VISIBILITY PATCH
+   Preserves the full uploaded globals.css and appends only overrides.
+════════════════════════════════════════════════════════ */
+
+/* Toast containers */
+.toast-viewport,
+.toast-container,
+.toast-wrapper,
+.toastArea,
+#toastArea,
+[data-toast-viewport],
+[data-radix-toast-viewport],
+[data-sonner-toaster] {
+  position: fixed !important;
+  z-index: 2147483000 !important;
+  pointer-events: none !important;
+  top: max(1rem, env(safe-area-inset-top)) !important;
+  right: max(1rem, env(safe-area-inset-right)) !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: min(440px, calc(100vw - 2rem)) !important;
+  max-width: calc(100vw - 2rem) !important;
+}
+
+/* Toast surfaces */
+.toast,
+.ff-toast,
+.toast-card,
+.toast-content,
+[data-toast],
+[data-radix-toast-root],
+[data-sonner-toast] {
+  pointer-events: auto !important;
+  width: 100% !important;
+  max-width: min(440px, calc(100vw - 2rem)) !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  border-radius: 22px !important;
+  padding: clamp(1rem, 3vw, 1.25rem) !important;
+  border: 1px solid rgba(212, 175, 55, 0.22) !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.10), transparent 34%),
+    linear-gradient(145deg, rgba(20, 18, 32, 0.98), rgba(7, 6, 12, 0.98)) !important;
+  color: #f8f4ea !important;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.54),
+    0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 0 34px rgba(212, 175, 55, 0.12) !important;
+  backdrop-filter: blur(18px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
+}
+
+.toast *,
+.ff-toast *,
+.toast-card *,
+.toast-content *,
+[data-toast] *,
+[data-radix-toast-root] *,
+[data-sonner-toast] * {
+  max-width: 100%;
+}
+
+.toast h1, .toast h2, .toast h3,
+.ff-toast h1, .ff-toast h2, .ff-toast h3,
+[data-toast] h1, [data-toast] h2, [data-toast] h3,
+[data-radix-toast-root] h1, [data-radix-toast-root] h2, [data-radix-toast-root] h3,
+[data-sonner-toast] h1, [data-sonner-toast] h2, [data-sonner-toast] h3 {
+  color: #fff7df !important;
+  -webkit-text-fill-color: currentColor !important;
+  background: none !important;
+  text-shadow: none !important;
+}
+
+.toast p, .toast span, .toast small,
+.ff-toast p, .ff-toast span, .ff-toast small,
+[data-toast] p, [data-toast] span, [data-toast] small,
+[data-radix-toast-root] p, [data-radix-toast-root] span, [data-radix-toast-root] small,
+[data-sonner-toast] p, [data-sonner-toast] span, [data-sonner-toast] small {
+  color: rgba(248, 244, 234, 0.86) !important;
+}
+
+/* Toast action layout */
+.toast-actions,
+.ff-toast-actions,
+.toast .actions,
+.ff-toast .actions,
+[data-toast] .actions,
+[data-radix-toast-root] .actions {
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.65rem !important;
+  margin-top: 0.95rem !important;
+  max-width: 100% !important;
+}
+
+.toast button,
+.ff-toast button,
+.toast a,
+.ff-toast a,
+[data-toast] button,
+[data-toast] a,
+[data-radix-toast-root] button,
+[data-radix-toast-root] a,
+[data-sonner-toast] button,
+[data-sonner-toast] a {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  border-radius: 13px !important;
+}
+
+/* Light mode toast visibility */
+html.light-mode .toast,
+html.light-mode .ff-toast,
+html.light-mode .toast-card,
+html.light-mode .toast-content,
+html.light-mode [data-toast],
+html.light-mode [data-radix-toast-root],
+html.light-mode [data-sonner-toast],
+html[data-theme="light"] .toast,
+html[data-theme="light"] .ff-toast,
+html[data-theme="light"] .toast-card,
+html[data-theme="light"] .toast-content,
+html[data-theme="light"] [data-toast],
+html[data-theme="light"] [data-radix-toast-root],
+html[data-theme="light"] [data-sonner-toast],
+body.light-mode .toast,
+body.light-mode .ff-toast,
+body.light-mode .toast-card,
+body.light-mode .toast-content,
+body.light-mode [data-toast],
+body.light-mode [data-radix-toast-root],
+body.light-mode [data-sonner-toast] {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(214, 173, 63, 0.13), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.20),
+    0 3px 12px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.90) inset !important;
+}
+
+html.light-mode .toast h1,
+html.light-mode .toast h2,
+html.light-mode .toast h3,
+html.light-mode .ff-toast h1,
+html.light-mode .ff-toast h2,
+html.light-mode .ff-toast h3,
+html.light-mode [data-toast] h1,
+html.light-mode [data-toast] h2,
+html.light-mode [data-toast] h3,
+html.light-mode [data-radix-toast-root] h1,
+html.light-mode [data-radix-toast-root] h2,
+html.light-mode [data-radix-toast-root] h3,
+html.light-mode [data-sonner-toast] h1,
+html.light-mode [data-sonner-toast] h2,
+html.light-mode [data-sonner-toast] h3,
+html[data-theme="light"] .toast h1,
+html[data-theme="light"] .toast h2,
+html[data-theme="light"] .toast h3,
+html[data-theme="light"] .ff-toast h1,
+html[data-theme="light"] .ff-toast h2,
+html[data-theme="light"] .ff-toast h3,
+html[data-theme="light"] [data-toast] h1,
+html[data-theme="light"] [data-toast] h2,
+html[data-theme="light"] [data-toast] h3,
+html[data-theme="light"] [data-radix-toast-root] h1,
+html[data-theme="light"] [data-radix-toast-root] h2,
+html[data-theme="light"] [data-radix-toast-root] h3,
+html[data-theme="light"] [data-sonner-toast] h1,
+html[data-theme="light"] [data-sonner-toast] h2,
+html[data-theme="light"] [data-sonner-toast] h3 {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+html.light-mode .toast p,
+html.light-mode .toast span,
+html.light-mode .toast small,
+html.light-mode .ff-toast p,
+html.light-mode .ff-toast span,
+html.light-mode .ff-toast small,
+html.light-mode [data-toast] p,
+html.light-mode [data-toast] span,
+html.light-mode [data-toast] small,
+html.light-mode [data-radix-toast-root] p,
+html.light-mode [data-radix-toast-root] span,
+html.light-mode [data-radix-toast-root] small,
+html.light-mode [data-sonner-toast] p,
+html.light-mode [data-sonner-toast] span,
+html.light-mode [data-sonner-toast] small,
+html[data-theme="light"] .toast p,
+html[data-theme="light"] .toast span,
+html[data-theme="light"] .toast small,
+html[data-theme="light"] .ff-toast p,
+html[data-theme="light"] .ff-toast span,
+html[data-theme="light"] .ff-toast small,
+html[data-theme="light"] [data-toast] p,
+html[data-theme="light"] [data-toast] span,
+html[data-theme="light"] [data-toast] small,
+html[data-theme="light"] [data-radix-toast-root] p,
+html[data-theme="light"] [data-radix-toast-root] span,
+html[data-theme="light"] [data-radix-toast-root] small,
+html[data-theme="light"] [data-sonner-toast] p,
+html[data-theme="light"] [data-sonner-toast] span,
+html[data-theme="light"] [data-sonner-toast] small {
+  color: #475569 !important;
+}
+
+/* Modal/dialog surfaces */
+.modal-content,
+.modal-card,
+.modal-panel,
+.ff-modal,
+.ff-dialog,
+.ff-confirm-box,
+.dialog-content,
+[data-radix-dialog-content],
+[data-dialog-content] {
+  color: #f8f4ea !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(212, 175, 55, 0.11), transparent 38%),
+    linear-gradient(145deg, rgba(20, 18, 32, 0.99), rgba(7, 6, 12, 0.99)) !important;
+  border: 1px solid rgba(212, 175, 55, 0.24) !important;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(255, 255, 255, 0.035) inset,
+    0 0 38px rgba(212, 175, 55, 0.10) !important;
+}
+
+.modal-content h1,
+.modal-content h2,
+.modal-content h3,
+.modal-card h1,
+.modal-card h2,
+.modal-card h3,
+.modal-panel h1,
+.modal-panel h2,
+.modal-panel h3,
+.ff-modal h1,
+.ff-modal h2,
+.ff-modal h3,
+.ff-dialog h1,
+.ff-dialog h2,
+.ff-dialog h3,
+.ff-confirm-box h1,
+.ff-confirm-box h2,
+.ff-confirm-box h3,
+.dialog-content h1,
+.dialog-content h2,
+.dialog-content h3,
+[data-radix-dialog-content] h1,
+[data-radix-dialog-content] h2,
+[data-radix-dialog-content] h3 {
+  color: #fff7df !important;
+  -webkit-text-fill-color: currentColor !important;
+  background: none !important;
+  text-shadow: none !important;
+}
+
+.modal-content p,
+.modal-content span,
+.modal-content small,
+.modal-card p,
+.modal-card span,
+.modal-card small,
+.modal-panel p,
+.modal-panel span,
+.modal-panel small,
+.ff-modal p,
+.ff-modal span,
+.ff-modal small,
+.ff-dialog p,
+.ff-dialog span,
+.ff-dialog small,
+.ff-confirm-box p,
+.ff-confirm-box span,
+.ff-confirm-box small,
+.dialog-content p,
+.dialog-content span,
+.dialog-content small,
+[data-radix-dialog-content] p,
+[data-radix-dialog-content] span,
+[data-radix-dialog-content] small {
+  color: rgba(248, 244, 234, 0.84) !important;
+}
+
+/* Light mode modal surfaces */
+html.light-mode .modal-content,
+html.light-mode .modal-card,
+html.light-mode .modal-panel,
+html.light-mode .ff-modal,
+html.light-mode .ff-dialog,
+html.light-mode .ff-confirm-box,
+html.light-mode .dialog-content,
+html.light-mode [data-radix-dialog-content],
+html.light-mode [data-dialog-content],
+html[data-theme="light"] .modal-content,
+html[data-theme="light"] .modal-card,
+html[data-theme="light"] .modal-panel,
+html[data-theme="light"] .ff-modal,
+html[data-theme="light"] .ff-dialog,
+html[data-theme="light"] .ff-confirm-box,
+html[data-theme="light"] .dialog-content,
+html[data-theme="light"] [data-radix-dialog-content],
+html[data-theme="light"] [data-dialog-content] {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(214, 173, 63, 0.11), transparent 38%),
+    linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow:
+    0 30px 90px rgba(15, 23, 42, 0.20),
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset !important;
+}
+
+html.light-mode .modal-content h1,
+html.light-mode .modal-content h2,
+html.light-mode .modal-content h3,
+html.light-mode .modal-card h1,
+html.light-mode .modal-card h2,
+html.light-mode .modal-card h3,
+html.light-mode .modal-panel h1,
+html.light-mode .modal-panel h2,
+html.light-mode .modal-panel h3,
+html.light-mode .ff-modal h1,
+html.light-mode .ff-modal h2,
+html.light-mode .ff-modal h3,
+html.light-mode .ff-dialog h1,
+html.light-mode .ff-dialog h2,
+html.light-mode .ff-dialog h3,
+html.light-mode .ff-confirm-box h1,
+html.light-mode .ff-confirm-box h2,
+html.light-mode .ff-confirm-box h3,
+html.light-mode .dialog-content h1,
+html.light-mode .dialog-content h2,
+html.light-mode .dialog-content h3,
+html.light-mode [data-radix-dialog-content] h1,
+html.light-mode [data-radix-dialog-content] h2,
+html.light-mode [data-radix-dialog-content] h3,
+html[data-theme="light"] .modal-content h1,
+html[data-theme="light"] .modal-content h2,
+html[data-theme="light"] .modal-content h3,
+html[data-theme="light"] .modal-card h1,
+html[data-theme="light"] .modal-card h2,
+html[data-theme="light"] .modal-card h3,
+html[data-theme="light"] .modal-panel h1,
+html[data-theme="light"] .modal-panel h2,
+html[data-theme="light"] .modal-panel h3,
+html[data-theme="light"] .ff-modal h1,
+html[data-theme="light"] .ff-modal h2,
+html[data-theme="light"] .ff-modal h3,
+html[data-theme="light"] .ff-dialog h1,
+html[data-theme="light"] .ff-dialog h2,
+html[data-theme="light"] .ff-dialog h3,
+html[data-theme="light"] .ff-confirm-box h1,
+html[data-theme="light"] .ff-confirm-box h2,
+html[data-theme="light"] .ff-confirm-box h3,
+html[data-theme="light"] .dialog-content h1,
+html[data-theme="light"] .dialog-content h2,
+html[data-theme="light"] .dialog-content h3,
+html[data-theme="light"] [data-radix-dialog-content] h1,
+html[data-theme="light"] [data-radix-dialog-content] h2,
+html[data-theme="light"] [data-radix-dialog-content] h3 {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+html.light-mode .modal-content p,
+html.light-mode .modal-content span,
+html.light-mode .modal-content small,
+html.light-mode .modal-card p,
+html.light-mode .modal-card span,
+html.light-mode .modal-card small,
+html.light-mode .modal-panel p,
+html.light-mode .modal-panel span,
+html.light-mode .modal-panel small,
+html.light-mode .ff-modal p,
+html.light-mode .ff-modal span,
+html.light-mode .ff-modal small,
+html.light-mode .ff-dialog p,
+html.light-mode .ff-dialog span,
+html.light-mode .ff-dialog small,
+html.light-mode .ff-confirm-box p,
+html.light-mode .ff-confirm-box span,
+html.light-mode .ff-confirm-box small,
+html.light-mode .dialog-content p,
+html.light-mode .dialog-content span,
+html.light-mode .dialog-content small,
+html.light-mode [data-radix-dialog-content] p,
+html.light-mode [data-radix-dialog-content] span,
+html.light-mode [data-radix-dialog-content] small,
+html[data-theme="light"] .modal-content p,
+html[data-theme="light"] .modal-content span,
+html[data-theme="light"] .modal-content small,
+html[data-theme="light"] .modal-card p,
+html[data-theme="light"] .modal-card span,
+html[data-theme="light"] .modal-card small,
+html[data-theme="light"] .modal-panel p,
+html[data-theme="light"] .modal-panel span,
+html[data-theme="light"] .modal-panel small,
+html[data-theme="light"] .ff-modal p,
+html[data-theme="light"] .ff-modal span,
+html[data-theme="light"] .ff-modal small,
+html[data-theme="light"] .ff-dialog p,
+html[data-theme="light"] .ff-dialog span,
+html[data-theme="light"] .ff-dialog small,
+html[data-theme="light"] .ff-confirm-box p,
+html[data-theme="light"] .ff-confirm-box span,
+html[data-theme="light"] .ff-confirm-box small,
+html[data-theme="light"] .dialog-content p,
+html[data-theme="light"] .dialog-content span,
+html[data-theme="light"] .dialog-content small,
+html[data-theme="light"] [data-radix-dialog-content] p,
+html[data-theme="light"] [data-radix-dialog-content] span,
+html[data-theme="light"] [data-radix-dialog-content] small {
+  color: #475569 !important;
+}
+
+/* Modal backdrop: visible without dulling modal itself */
+.modal-backdrop,
+.ff-modal-backdrop,
+.ff-confirm-backdrop,
+.dialog-backdrop,
+[data-radix-dialog-overlay],
+[data-dialog-overlay] {
+  background: rgba(2, 6, 23, 0.62) !important;
+  backdrop-filter: blur(10px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
+}
+
+html.light-mode .modal-backdrop,
+html.light-mode .ff-modal-backdrop,
+html.light-mode .ff-confirm-backdrop,
+html.light-mode .dialog-backdrop,
+html.light-mode [data-radix-dialog-overlay],
+html.light-mode [data-dialog-overlay],
+html[data-theme="light"] .modal-backdrop,
+html[data-theme="light"] .ff-modal-backdrop,
+html[data-theme="light"] .ff-confirm-backdrop,
+html[data-theme="light"] .dialog-backdrop,
+html[data-theme="light"] [data-radix-dialog-overlay],
+html[data-theme="light"] [data-dialog-overlay] {
+  background: rgba(15, 23, 42, 0.38) !important;
+}
+
+/* Mobile toast */
+@media (max-width: 640px) {
+  .toast-viewport,
+  .toast-container,
+  .toast-wrapper,
+  #toastArea,
+  [data-toast-viewport],
+  [data-radix-toast-viewport],
+  [data-sonner-toaster] {
+    top: max(0.8rem, env(safe-area-inset-top)) !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  .toast,
+  .ff-toast,
+  .toast-card,
+  .toast-content,
+  [data-toast],
+  [data-radix-toast-root],
+  [data-sonner-toast] {
+    max-width: 100% !important;
+    border-radius: 18px !important;
+    padding: 1rem !important;
+  }
+
+  .toast-actions,
+  .ff-toast-actions,
+  .toast .actions,
+  .ff-toast .actions,
+  [data-toast] .actions,
+  [data-radix-toast-root] .actions {
+    flex-direction: column !important;
+  }
+
+  .toast button,
+  .ff-toast button,
+  .toast a,
+  .ff-toast a,
+  [data-toast] button,
+  [data-toast] a,
+  [data-radix-toast-root] button,
+  [data-radix-toast-root] a,
+  [data-sonner-toast] button,
+  [data-sonner-toast] a {
+    width: 100% !important;
+  }
+}
