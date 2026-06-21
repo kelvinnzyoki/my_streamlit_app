@@ -5,13 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   BarChart3,
-  CreditCard,
   Dumbbell,
   Grid3X3,
   Home,
   LogOut,
   Menu,
-  Shield,
   User,
   X,
 } from 'lucide-react';
@@ -24,9 +22,7 @@ const NAV = [
   { label: 'Programs', href: '/programs', Icon: Grid3X3 },
   { label: 'Workouts', href: '/workouts', Icon: Dumbbell },
   { label: 'Progress', href: '/progress', Icon: BarChart3 },
-  { label: 'Subscription', href: '/subscription', Icon: CreditCard },
   { label: 'Profile', href: '/profile', Icon: User },
-  { label: 'Admin', href: '/admin', Icon: Shield },
 ] as const;
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
