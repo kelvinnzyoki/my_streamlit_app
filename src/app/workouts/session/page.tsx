@@ -828,5 +828,7 @@ export default function WorkoutSessionPage() {
     >
       <SessionContent />
     </Suspense>
+
+    <Footer />
   );
 }
