@@ -529,6 +529,7 @@ export default function ProgressPage() {
       </section>
     </DashboardShell>
 
-    <Footer />
+    
   );
+  <Footer />
 }
