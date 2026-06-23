@@ -115,5 +115,7 @@ export default function ProgramsPage() {
         )}
       </section>
     </DashboardShell>
+
+    <Footer />
   );
 }
