@@ -226,5 +226,7 @@ export default function SubscriptionPage() {
         </p>
       </section>
     </DashboardShell>
+
+    <Footer />
   );
 }
