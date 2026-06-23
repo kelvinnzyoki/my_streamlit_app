@@ -189,5 +189,7 @@ export default function DashboardPage() {
         </div>
       </section>
     </DashboardShell>
+
+    <Footer />
   );
 }
