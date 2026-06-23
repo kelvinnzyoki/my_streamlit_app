@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import ThemeToggle from '@/components/ThemeToggle';
+import FeedbackWidget from '@/components/FeedbackWidget';
 import { useAuth } from '@/hooks/useAuth';
 
 const NAV = [
