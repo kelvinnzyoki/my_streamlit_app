@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, CheckCheck, Loader2, Trash2, X } from 'lucide-react';
+import { Bell, CheckCheck, ChevronLeft, Loader2, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   NotificationsAPI,
@@ -26,6 +26,7 @@ function formatNotificationTime(value?: string) {
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<FlowFitNotification[]>([]);
+  const [selected, setSelected] = useState<FlowFitNotification | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -41,11 +42,16 @@ export default function NotificationBell() {
       const res = await NotificationsAPI.getAll(20);
       setNotifications(res.notifications);
       setUnreadCount(res.unreadCount);
+      setSelected((current) => {
+        if (!current?.id) return current;
+        return res.notifications.find((item) => item.id === current.id) || null;
+      });
     } catch (err: any) {
       setError(err?.message || 'Unable to load notifications.');
       if (!silent) {
         setNotifications([]);
         setUnreadCount(0);
+        setSelected(null);
       }
     } finally {
       if (!silent) setLoading(false);
@@ -69,32 +75,33 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (open) loadNotifications();
+    if (!open) setSelected(null);
   }, [open, loadNotifications]);
 
   async function handleToggle() {
     setOpen((value) => !value);
   }
 
-  async function handleMarkRead(notification: FlowFitNotification) {
-    if (!notification.id) return;
+  async function handleOpenNotification(notification: FlowFitNotification) {
+    setSelected(notification);
 
-    if (notification.readAt) {
-      if (notification.link) window.location.href = notification.link;
-      return;
-    }
+    if (!notification.id || notification.readAt) return;
 
     setActionLoading(notification.id);
     try {
       await NotificationsAPI.markRead(notification.id);
+      const readAt = new Date().toISOString();
       setNotifications((prev) =>
         prev.map((item) =>
           item.id === notification.id
-            ? { ...item, readAt: item.readAt || new Date().toISOString() }
+            ? { ...item, readAt: item.readAt || readAt }
             : item,
         ),
       );
+      setSelected((current) =>
+        current?.id === notification.id ? { ...current, readAt: current.readAt || readAt } : current,
+      );
       setUnreadCount((count) => Math.max(0, count - 1));
-      if (notification.link) window.location.href = notification.link;
     } catch (err: any) {
       setError(err?.message || 'Failed to mark notification as read.');
     } finally {
@@ -110,6 +117,7 @@ export default function NotificationBell() {
       await NotificationsAPI.markAllRead();
       const now = new Date().toISOString();
       setNotifications((prev) => prev.map((item) => ({ ...item, readAt: item.readAt || now })));
+      setSelected((current) => (current ? { ...current, readAt: current.readAt || now } : current));
       setUnreadCount(0);
     } catch (err: any) {
       setError(err?.message || 'Failed to mark all notifications as read.');
@@ -125,6 +133,7 @@ export default function NotificationBell() {
       const target = notifications.find((item) => item.id === id);
       await NotificationsAPI.delete(id);
       setNotifications((prev) => prev.filter((item) => item.id !== id));
+      setSelected((current) => (current?.id === id ? null : current));
       if (target && !target.readAt) setUnreadCount((count) => Math.max(0, count - 1));
     } catch (err: any) {
       setError(err?.message || 'Failed to delete notification.');
@@ -169,7 +178,7 @@ export default function NotificationBell() {
             <div className="ff-notification-head">
               <div>
                 <p className="eyebrow">Notifications</p>
-                <strong>{notificationLabel}</strong>
+                <strong>{selected ? selected.title : notificationLabel}</strong>
               </div>
 
               <button
@@ -182,78 +191,112 @@ export default function NotificationBell() {
               </button>
             </div>
 
-            <div className="ff-notification-actions">
-              <button
-                type="button"
-                className="secondary-btn"
-                onClick={() => loadNotifications()}
-                disabled={loading}
-              >
-                {loading ? <Loader2 size={14} className="ff-spin" /> : 'Refresh'}
-              </button>
+            {selected ? (
+              <div className="ff-notification-detail">
+                <button
+                  type="button"
+                  className="secondary-btn ff-notification-back-btn"
+                  onClick={() => setSelected(null)}
+                >
+                  <ChevronLeft size={15} />
+                  Back to notifications
+                </button>
 
-              <button
-                type="button"
-                className="secondary-btn"
-                onClick={handleMarkAllRead}
-                disabled={actionLoading === 'all' || unreadCount === 0}
-              >
-                <CheckCheck size={14} />
-                Read all
-              </button>
-            </div>
-
-            {error && <p className="alert ff-notification-error">{error}</p>}
-
-            <div className="ff-notification-list">
-              {loading ? (
-                <div className="ff-notification-empty">
-                  <Loader2 size={20} className="ff-spin" />
-                  <span>Loading notifications…</span>
+                <div className="ff-notification-detail-card">
+                  <span className="ff-notification-icon ff-notification-detail-icon">
+                    {selected.icon || '🔔'}
+                  </span>
+                  <p className="eyebrow">{formatNotificationTime(selected.createdAt) || 'Notification'}</p>
+                  <h3>{selected.title}</h3>
+                  <p>{selected.body || 'No message body available.'}</p>
                 </div>
-              ) : notifications.length === 0 ? (
-                <div className="ff-notification-empty">
-                  <span className="ff-empty-icon">🔔</span>
-                  <strong>No notifications yet</strong>
-                  <p className="muted">Workout reminders, milestones, and system updates will appear here.</p>
-                </div>
-              ) : (
-                notifications.map((item) => (
-                  <article
-                    key={item.id}
-                    className={`ff-notification-item ${item.readAt ? 'is-read' : 'is-unread'}`}
+
+                <button
+                  type="button"
+                  className="secondary-btn ff-notification-detail-delete"
+                  onClick={() => selected.id && handleDelete(selected.id)}
+                  disabled={Boolean(selected.id && actionLoading === selected.id)}
+                >
+                  {selected.id && actionLoading === selected.id ? <Loader2 size={14} className="ff-spin" /> : <Trash2 size={14} />}
+                  Delete notification
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="ff-notification-actions">
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() => loadNotifications()}
+                    disabled={loading}
                   >
-                    <button
-                      type="button"
-                      className="ff-notification-content"
-                      onClick={() => handleMarkRead(item)}
-                    >
-                      <span className="ff-notification-icon">{item.icon || '🔔'}</span>
+                    {loading ? <Loader2 size={14} className="ff-spin" /> : 'Refresh'}
+                  </button>
 
-                      <span className="ff-notification-copy">
-                        <strong>{item.title}</strong>
-                        <span>{item.body}</span>
-                        <small>{formatNotificationTime(item.createdAt)}</small>
-                      </span>
-                    </button>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={handleMarkAllRead}
+                    disabled={actionLoading === 'all' || unreadCount === 0}
+                  >
+                    <CheckCheck size={14} />
+                    Read all
+                  </button>
+                </div>
 
-                    <button
-                      type="button"
-                      className="ff-notification-delete"
-                      onClick={() => handleDelete(item.id)}
-                      disabled={actionLoading === item.id}
-                      aria-label="Delete notification"
-                    >
-                      {actionLoading === item.id ? (
-                        <Loader2 size={14} className="ff-spin" />
-                      ) : (
-                        <Trash2 size={14} />
-                      )}
-                    </button>
-                  </article>
-                ))
-              )}
-            </div>
+                {error && <p className="alert ff-notification-error">{error}</p>}
+
+                <div className="ff-notification-list">
+                  {loading ? (
+                    <div className="ff-notification-empty">
+                      <Loader2 size={20} className="ff-spin" />
+                      <span>Loading notifications…</span>
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="ff-notification-empty">
+                      <span className="ff-empty-icon">🔔</span>
+                      <strong>No notifications yet</strong>
+                      <p className="muted">Workout reminders, milestones, and system updates will appear here.</p>
+                    </div>
+                  ) : (
+                    notifications.map((item) => (
+                      <article
+                        key={item.id}
+                        className={`ff-notification-item ${item.readAt ? 'is-read' : 'is-unread'}`}
+                      >
+                        <button
+                          type="button"
+                          className="ff-notification-content"
+                          onClick={() => handleOpenNotification(item)}
+                        >
+                          <span className="ff-notification-icon">{item.icon || '🔔'}</span>
+
+                          <span className="ff-notification-copy">
+                            <strong>{item.title}</strong>
+                            <span>{item.body}</span>
+                            <small>{formatNotificationTime(item.createdAt)}</small>
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="ff-notification-delete"
+                          onClick={() => handleDelete(item.id)}
+                          disabled={actionLoading === item.id}
+                          aria-label="Delete notification"
+                        >
+                          {actionLoading === item.id ? (
+                            <Loader2 size={14} className="ff-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
+                        </button>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </section>
         </>
       )}
