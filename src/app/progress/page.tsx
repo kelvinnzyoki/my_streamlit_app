@@ -18,6 +18,7 @@ import {
 import DashboardShell from '@/components/DashboardShell';
 import { ProgressAPI, UserAPI } from '@/lib/api';
 import styles from './progress.module.css';
+import Footer from '@/components/footer';
 
 type Period = '7d' | '30d' | '90d';
 type ApiResult<T = any> = { success?: boolean; data?: T; [key: string]: any } | T;
