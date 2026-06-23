@@ -6,6 +6,7 @@ import DashboardShell from '@/components/DashboardShell';
 import ProgramCard from '@/components/programCard';
 import { getPrograms } from '@/lib/api';
 import type { Program } from '@/types/program';
+import Footer from '@/components/footer';
 
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<(Program & any)[]>([]);
