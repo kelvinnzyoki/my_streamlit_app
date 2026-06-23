@@ -19,6 +19,7 @@ import ProgressChart from '@/components/progressChart';
 import { getDashboard, getProgress, getWorkouts } from '@/lib/api';
 import { formatNumber } from '@/lib/utils';
 import type { Workout } from '@/types/workout';
+import Footer from '@/components/footer';
 
 const QUICK_NAV = [
   { label: 'Workouts', href: '/workouts', Icon: Dumbbell, copy: 'Start a protected server session' },
