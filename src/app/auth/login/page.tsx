@@ -7,6 +7,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthAPI } from '@/lib/api';
 import ThemeToggle from '@/components/ThemeToggle';
+import Footer from '@/components/footer';
 
 type View = 'login' | 'forgot' | 'otp' | 'reset';
 
