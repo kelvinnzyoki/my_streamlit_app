@@ -190,6 +190,7 @@ export default function DashboardPage() {
       </section>
     </DashboardShell>
 
-    <Footer />
+    
   );
+  <Footer />
 }
