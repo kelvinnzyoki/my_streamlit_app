@@ -1,14 +1,16 @@
 .wrap {
   position: fixed;
   right: clamp(.85rem, 2vw, 1.25rem);
-  bottom: clamp(.85rem, 2vw, 1.25rem);
+  bottom: max(.85rem, env(safe-area-inset-bottom));
   z-index: 2200;
   display: grid;
   justify-items: end;
-  gap: .75rem;
+  gap: .72rem;
   pointer-events: none;
 }
 
+/* Closed state is only a small bottom popup trigger.
+   The wrapper itself does not block the page. */
 .fab,
 .panel {
   pointer-events: auto;
@@ -17,30 +19,58 @@
 .fab {
   display: inline-flex;
   align-items: center;
-  gap: .55rem;
-  min-height: 46px;
-  padding: .85rem 1rem;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 42px;
+  max-width: min(220px, calc(100vw - 1.5rem));
+  padding: .72rem .95rem;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--Au-hi), var(--Au), var(--Au-lo));
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,.45), transparent 26%),
+    linear-gradient(135deg, var(--Au-hi), var(--Au), var(--Au-lo));
   color: var(--ink);
+  font-size: .82rem;
   font-weight: 900;
-  box-shadow: 0 18px 38px rgba(212,175,55,.26), 0 8px 28px rgba(0,0,0,.28);
+  letter-spacing: .02em;
+  white-space: nowrap;
+  box-shadow:
+    0 14px 28px rgba(212,175,55,.22),
+    0 8px 24px rgba(0,0,0,.24);
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.fab:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 18px 36px rgba(212,175,55,.28),
+    0 10px 28px rgba(0,0,0,.28);
+}
+
+.fab:focus-visible {
+  outline: 3px solid rgba(212,175,55,.38);
+  outline-offset: 3px;
 }
 
 .panel {
-  width: min(420px, calc(100vw - 1.5rem));
+  width: min(410px, calc(100vw - 1.5rem));
+  max-height: min(76dvh, 620px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--b1);
   border-radius: 24px;
   background:
     radial-gradient(circle at top right, var(--Au-10), transparent 38%),
     var(--g-card);
-  box-shadow: 0 30px 80px rgba(0,0,0,.42);
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.05);
   padding: 1rem;
 }
 
 .head {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: .8rem;
   margin-bottom: .85rem;
@@ -48,18 +78,24 @@
 
 .head h2 {
   margin: .25rem 0 0;
-  font-size: 1.35rem;
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
+  line-height: 1.1;
 }
 
 .head button {
   width: 38px;
   height: 38px;
+  flex: 0 0 38px;
   display: grid;
   place-items: center;
   border: 1px solid var(--b1);
   border-radius: 12px;
   background: var(--white-05);
   color: var(--t1);
+}
+
+.head button:hover {
+  background: var(--white-10);
 }
 
 .form {
@@ -80,6 +116,7 @@
 .form select,
 .form textarea {
   width: 100%;
+  min-width: 0;
   border: 1px solid var(--b1);
   border-radius: 14px;
   background: var(--white-05);
@@ -90,14 +127,23 @@
 }
 
 .form textarea {
+  min-height: 118px;
   resize: vertical;
   line-height: 1.55;
+}
+
+.form select:focus,
+.form textarea:focus {
+  outline: none;
+  border-color: var(--Au);
+  box-shadow: 0 0 0 3px var(--Au-12);
 }
 
 .error {
   margin: 0;
   color: #ffb4b4;
   font-size: .85rem;
+  line-height: 1.5;
 }
 
 .success {
@@ -121,12 +167,17 @@
   line-height: 1.6;
 }
 
+/* Light mode: force strong readable contrast */
 :global(html.light-mode) .panel,
 :global(html[data-theme='light']) .panel {
-  background: #fff !important;
+  background:
+    radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 40%),
+    #ffffff !important;
   color: #111827 !important;
   border-color: #e5e7eb !important;
-  box-shadow: 0 24px 70px rgba(15,23,42,.18);
+  box-shadow:
+    0 24px 70px rgba(15,23,42,.16),
+    0 6px 18px rgba(15,23,42,.08) !important;
 }
 
 :global(html.light-mode) .head h2,
@@ -134,6 +185,13 @@
 :global(html.light-mode) .success strong,
 :global(html[data-theme='light']) .success strong {
   color: #111827 !important;
+}
+
+:global(html.light-mode) .head button,
+:global(html[data-theme='light']) .head button {
+  background: #f8fafc !important;
+  color: #111827 !important;
+  border-color: #d1d5db !important;
 }
 
 :global(html.light-mode) .form label,
@@ -152,18 +210,47 @@
   color: #111827 !important;
 }
 
+:global(html.light-mode) .form select:focus,
+:global(html.light-mode) .form textarea:focus,
+:global(html[data-theme='light']) .form select:focus,
+:global(html[data-theme='light']) .form textarea:focus {
+  border-color: #b0892f !important;
+  box-shadow: 0 0 0 3px rgba(176,137,47,.18) !important;
+}
+
+@media (max-width: 720px) {
+  .wrap {
+    right: .85rem;
+    bottom: max(.85rem, env(safe-area-inset-bottom));
+  }
+
+  .panel {
+    width: min(390px, calc(100vw - 1.5rem));
+    max-height: min(74dvh, 600px);
+    border-radius: 22px;
+  }
+}
+
 @media (max-width: 520px) {
   .wrap {
     left: .75rem;
     right: .75rem;
-    justify-items: stretch;
+    bottom: max(.75rem, env(safe-area-inset-bottom));
+    justify-items: end;
   }
 
   .panel {
     width: 100%;
+    max-height: 72dvh;
+    border-radius: 20px;
+    padding: .95rem;
   }
 
   .fab {
-    justify-content: center;
+    justify-self: end;
+    min-height: 40px;
+    max-width: 172px;
+    padding: .68rem .85rem;
+    font-size: .78rem;
   }
 }
