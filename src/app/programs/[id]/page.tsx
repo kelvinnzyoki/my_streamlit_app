@@ -745,6 +745,8 @@ export default function ProgramDetailPage() {
       </section>
     </DashboardShell>
 
-    <Footer />
+    
   );
+
+  <Footer />
 }
