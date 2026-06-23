@@ -16,6 +16,7 @@ import DashboardShell from "@/components/DashboardShell";
 import { getWorkoutById, logWorkout } from "@/lib/api";
 import { formatTime, imageUrl } from "@/lib/utils";
 import type { Workout } from "@/types/workout";
+import Footer from '@/components/footer';
 
 type SetRow = { reps: string; load: string; done: boolean };
 
