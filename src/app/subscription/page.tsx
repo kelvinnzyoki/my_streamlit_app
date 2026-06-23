@@ -5,6 +5,7 @@ import { Check, Zap } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import { getSubscription, getPlans, checkoutPlan, cancelSubscription } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import Footer from '@/components/footer';
 
 type Plan = {
   id: string; name: string; description?: string;
