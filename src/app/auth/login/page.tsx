@@ -223,6 +223,8 @@ export default function LoginPage() {
         </form>
       )}
     </main>
-    <Footer />
+    
   );
+
+  <Footer />
 }
