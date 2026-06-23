@@ -20,7 +20,7 @@ import { ProgramsAPI, getProgramById, getWorkouts } from '@/lib/api';
 import { imageUrl } from '@/lib/utils';
 import type { Program } from '@/types/program';
 import type { Workout } from '@/types/workout';
-
+import Footer from '@/components/footer';
 type Enrollment = {
   id?: string;
   programId?: string;
