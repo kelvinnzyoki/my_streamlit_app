@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './notification-bell.patch.css';
 import { AuthProvider } from '@/context/authContext';
 import { ToastProvider } from '@/components/ToastProvider';
+
 
 export const metadata: Metadata = {
   title: 'FlowFit',
