@@ -528,5 +528,7 @@ export default function ProgressPage() {
         </div>
       </section>
     </DashboardShell>
+
+    <Footer />
   );
 }
