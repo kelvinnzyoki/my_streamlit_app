@@ -7,7 +7,7 @@ import { ToastProvider } from '@/components/ToastProvider';
 
 export const metadata: Metadata = {
   title: 'FlowFit',
-  description: 'AI home fitness platform with protected workout analytics.',
+  description: 'Home fitness platform with protected workout analytics.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
