@@ -70,6 +70,7 @@ export default function WorkoutsPage() {
       </section>
     </DashboardShell>
 
-    <Footer />
+    
   );
+  <Footer />
 }
