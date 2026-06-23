@@ -17,6 +17,7 @@ import NotificationBell from '@/components/NotificationBell';
 import ThemeToggle from '@/components/ThemeToggle';
 import FeedbackWidget from '@/components/FeedbackWidget';
 import { useAuth } from '@/hooks/useAuth';
+import Footer from '@/components/footer';
 
 const NAV = [
   { label: 'Dashboard', href: '/dashboard', Icon: Home },
