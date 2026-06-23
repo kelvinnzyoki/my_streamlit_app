@@ -8,7 +8,7 @@ import { ProgramsAPI, UserAPI } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast, sanitizeClientMessage } from '@/components/ToastProvider';
 import styles from './profile.module.css';
-
+import Footer from '@/components/footer';
 type ProfileForm = {
   firstName: string;
   lastName: string;
