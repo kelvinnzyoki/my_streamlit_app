@@ -2,6 +2,20 @@ import Link from 'next/link';
 import { CalendarDays, CheckCircle2, Dumbbell, Layers3, LockKeyhole, PlayCircle, Sparkles } from 'lucide-react';
 import type { Program } from '@/types/program';
 
+const PROGRAM_IMAGE_BY_TITLE: Record<string, string> = {
+  'beginner foundation': '/images/exercises/squats.webp',
+  'fat burn hiit': '/images/exercises/burpees1 (1).webp',
+  'core power': '/images/exercises/plank.webp',
+  'full body strength': '/images/exercises/pushups.webp',
+  'elite conditioning': '/images/exercises/sprints (1).webp',
+  'athletic engine': '/images/exercises/boxjumps.webp',
+  'lean muscle builder': '/images/exercises/tricepdips.webp',
+  '30-minute shred': '/images/exercises/mountainclimbers.webp',
+  'joint strong reset': '/images/exercises/childpose.webp',
+  'elite core athlete': '/images/exercises/russiantwists.webp',
+  'home hybrid performance': '/images/fit1 (1).webp',
+};
+
 const PROGRAM_IMAGE_BY_CATEGORY: Record<string, string> = {
   strength: '/images/exercises/pushups.webp',
   hiit: '/images/exercises/burpees1 (1).webp',
@@ -16,6 +30,9 @@ function pickProgramImage(program: any) {
   if (program.image || program.imageUrl || program.coverImage) {
     return program.image || program.imageUrl || program.coverImage;
   }
+
+  const titleKey = String(program.title || program.name || '').toLowerCase();
+  if (PROGRAM_IMAGE_BY_TITLE[titleKey]) return PROGRAM_IMAGE_BY_TITLE[titleKey];
 
   const category = String(program.category || program.focus || 'general_fitness').toLowerCase();
   return PROGRAM_IMAGE_BY_CATEGORY[category] || PROGRAM_IMAGE_BY_CATEGORY.general_fitness;
