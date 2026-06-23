@@ -1026,15 +1026,83 @@ export const getPlans = async () => {
 export const checkoutPlan = (planId: string, interval = 'MONTHLY') => SubscriptionAPI.createPaystackCheckout(planId, interval);
 export const cancelSubscription = SubscriptionAPI.cancelSubscription;
 
-export const NotificationsAPI = {
-  getAll: (limit = 30) => apiRequest<any>(`/notifications?limit=${limit}`).catch(() => ({ notifications: [], unreadCount: 0 })),
-  getUnreadCount: () => apiRequest<any>('/notifications/unread').catch(() => ({ count: 0 })),
-  markRead: (id: string) => apiRequest<any>(`/notifications/${id}/read`, { method: 'PUT' }),
-  markAllRead: () => apiRequest<any>('/notifications/read-all', { method: 'PUT' }),
-  delete: (id: string) => apiRequest<any>(`/notifications/${id}`, { method: 'DELETE' }),
+export type FlowFitNotification = {
+  id: string;
+  type?: string;
+  title: string;
+  body: string;
+  icon?: string | null;
+  link?: string | null;
+  readAt?: string | null;
+  createdAt?: string;
 };
 
-export const getNotifications = async () => asArray(await NotificationsAPI.getAll(), ['notifications', 'items']);
+function normalizeNotificationsPayload(payload: any): {
+  notifications: FlowFitNotification[];
+  unreadCount: number;
+} {
+  const source = payload?.data && typeof payload.data === 'object' ? payload.data : payload;
+
+  const notifications = asArray(source, ['notifications', 'items', 'data']).map((item: any) => ({
+    id: String(item.id),
+    type: item.type,
+    title: String(item.title || 'Notification'),
+    body: String(item.body || item.message || ''),
+    icon: item.icon ?? '🔔',
+    link: item.link ?? null,
+    readAt: item.readAt ?? item.read_at ?? null,
+    createdAt: item.createdAt ?? item.created_at,
+  }));
+
+  const unreadCount = Number(
+    source?.unreadCount ??
+    source?.unread_count ??
+    source?.count ??
+    notifications.filter((item) => !item.readAt).length ??
+    0,
+  );
+
+  return {
+    notifications,
+    unreadCount: Number.isFinite(unreadCount) ? unreadCount : 0,
+  };
+}
+
+export const NotificationsAPI = {
+  async getAll(limit = 20, unreadOnly = false) {
+    const query = toQueryString({ limit, unread: unreadOnly ? 'true' : undefined });
+    const res = await apiRequest<any>(`/notifications${query}`);
+    return normalizeNotificationsPayload(res);
+  },
+
+  async getUnreadCount() {
+    const res = await apiRequest<any>('/notifications/unread');
+    const source = res?.data && typeof res.data === 'object' ? res.data : res;
+    const count = Number(source?.count ?? source?.unreadCount ?? source?.unread_count ?? 0);
+    return { count: Number.isFinite(count) ? count : 0 };
+  },
+
+  async markRead(id: string) {
+    if (!id) return { success: false };
+    return apiRequest<any>(`/notifications/${encodeURIComponent(id)}/read`, { method: 'PUT' });
+  },
+
+  async markAllRead() {
+    return apiRequest<any>('/notifications/read-all', { method: 'PUT' });
+  },
+
+  async delete(id: string) {
+    if (!id) return { success: false };
+    return apiRequest<any>(`/notifications/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  },
+};
+
+export const getNotifications = async (limit = 20, unreadOnly = false) =>
+  (await NotificationsAPI.getAll(limit, unreadOnly)).notifications;
+
+export const getUnreadNotificationCount = async () =>
+  (await NotificationsAPI.getUnreadCount()).count;
+
 export const markNotificationRead = NotificationsAPI.markRead;
 
 export const askCoach = (message: string, context?: any) => apiRequest<any>('/ai/coach', {
