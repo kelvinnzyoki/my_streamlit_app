@@ -7,6 +7,7 @@ import { Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthAPI } from '@/lib/api';
 import ThemeToggle from '@/components/ThemeToggle';
+import Footer from '@/components/footer';
 
 type Step = 1 | 2 | 3;
 
