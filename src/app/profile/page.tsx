@@ -449,6 +449,7 @@ export default function ProfilePage() {
       </section>
     </DashboardShell>
 
-    <Footer />
+    
   );
+  <Footer />
 }
