@@ -157,6 +157,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </header>
         {children}
         <FeedbackWidget />
+        <Footer />
       </main>
 
       {confirmLogout && (
