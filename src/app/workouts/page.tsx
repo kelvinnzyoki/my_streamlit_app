@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import WorkoutCard from '@/components/workoutCard';
 import { useWorkouts } from '@/hooks/useWorkouts';
+import Footer from '@/components/footer';
 
 export default function WorkoutsPage() {
   const { workouts, categories, query, setQuery, category, setCategory, loading } = useWorkouts();
