@@ -1134,3 +1134,99 @@ export async function requireAuth() {
   }
   return false;
 }
+
+
+/* ─────────────────────────────────────────────────────────────
+   Admin + Feedback frontend API
+   - /admin is protected server-side by authenticate + requireAdmin.
+   - feedback is authenticated user feedback.
+───────────────────────────────────────────────────────────── */
+
+export type FeedbackType = 'bug' | 'suggestion' | 'complaint' | 'praise';
+export type FeedbackStatus = 'NEW' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED';
+
+export const FeedbackAPI = {
+  create(body: { type?: FeedbackType; message: string; pageUrl?: string | null }) {
+    return apiRequest<any>('/feedback', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: body.type || 'suggestion',
+        message: body.message,
+        pageUrl: body.pageUrl || (typeof window !== 'undefined' ? window.location.pathname : undefined),
+      }),
+    });
+  },
+};
+
+export const submitFeedback = FeedbackAPI.create;
+
+export const AdminAPI = {
+  getSummary() {
+    return apiRequest<any>('/admin/summary');
+  },
+
+  getUsers(params: { page?: number; limit?: number; q?: string } = {}) {
+    const query = toQueryString({
+      page: params.page || 1,
+      limit: params.limit || 20,
+      q: params.q || undefined,
+    });
+    return apiRequest<any>(`/admin/users${query}`);
+  },
+
+  getSubscriptions(params: { page?: number; limit?: number; status?: string } = {}) {
+    const query = toQueryString({
+      page: params.page || 1,
+      limit: params.limit || 20,
+      status: params.status || undefined,
+    });
+    return apiRequest<any>(`/admin/subscriptions${query}`);
+  },
+
+  getWorkouts(params: { page?: number; limit?: number } = {}) {
+    const query = toQueryString({
+      page: params.page || 1,
+      limit: params.limit || 20,
+    });
+    return apiRequest<any>(`/admin/workouts${query}`);
+  },
+
+  getPrograms(params: { page?: number; limit?: number; q?: string } = {}) {
+    const query = toQueryString({
+      page: params.page || 1,
+      limit: params.limit || 20,
+      q: params.q || undefined,
+    });
+    return apiRequest<any>(`/admin/programs${query}`);
+  },
+
+  getEnrollments(params: { page?: number; limit?: number } = {}) {
+    const query = toQueryString({
+      page: params.page || 1,
+      limit: params.limit || 20,
+    });
+    return apiRequest<any>(`/admin/program-enrollments${query}`);
+  },
+
+  getFeedback(params: { page?: number; limit?: number; status?: FeedbackStatus | 'ALL' } = {}) {
+    const query = toQueryString({
+      page: params.page || 1,
+      limit: params.limit || 20,
+      status: params.status && params.status !== 'ALL' ? params.status : undefined,
+    });
+    return apiRequest<any>(`/admin/feedback${query}`);
+  },
+
+  updateFeedbackStatus(id: string, status: FeedbackStatus) {
+    return apiRequest<any>(`/admin/feedback/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  getActivity() {
+    return apiRequest<any>('/admin/activity');
+  },
+};
+
+
