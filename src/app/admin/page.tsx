@@ -37,8 +37,29 @@ function unwrap(payload: any) {
 }
 
 function numberish(value: unknown) {
+  if (typeof value === "string") {
+    const cleaned = value.replace(/[^0-9.-]/g, "");
+    const parsed = Number(cleaned || 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
   const n = Number(value ?? 0);
   return Number.isFinite(n) ? n : 0;
+}
+
+function firstNumber(...values: unknown[]) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const n = numberish(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return 0;
+}
+
+function firstArray(...values: unknown[]) {
+  for (const value of values) {
+    if (Array.isArray(value)) return value;
+  }
+  return [];
 }
 
 function money(cents: unknown) {
@@ -48,6 +69,58 @@ function money(cents: unknown) {
     currency: "KES",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function normalizeSummary(raw: any) {
+  const data = unwrap(raw);
+  const totals = data?.totals || data?.summary || data?.stats || {};
+  const recent = data?.recent || {};
+  const subscriptions = data?.subscriptions || {};
+
+  return {
+    ...data,
+    totals,
+    recent,
+    subscriptions,
+
+    totalUsers: firstNumber(data.totalUsers, totals.totalUsers, totals.users, data.usersTotal),
+    newUsersToday: firstNumber(data.newUsersToday, totals.newUsersToday, totals.usersToday),
+    verifiedUsers: firstNumber(data.verifiedUsers, totals.verifiedUsers, totals.emailVerifiedUsers),
+
+    totalWorkoutLogs: firstNumber(data.totalWorkoutLogs, totals.totalWorkoutLogs, totals.workoutLogs, totals.workouts),
+    workoutsToday: firstNumber(data.workoutsToday, totals.workoutsToday, totals.workoutLogsToday),
+
+    totalPrograms: firstNumber(data.totalPrograms, totals.totalPrograms, totals.programs),
+    activePrograms: firstNumber(data.activePrograms, totals.activePrograms),
+
+    totalEnrollments: firstNumber(data.totalEnrollments, totals.totalEnrollments, totals.enrollments),
+    activeEnrollments: firstNumber(data.activeEnrollments, totals.activeEnrollments),
+
+    feedbackNew: firstNumber(data.feedbackNew, totals.feedbackNew, totals.newFeedback),
+    feedbackTotal: firstNumber(data.feedbackTotal, totals.feedbackTotal, totals.feedback),
+
+    successfulRevenueCents: firstNumber(
+      data.successfulRevenueCents,
+      totals.successfulRevenueCents,
+      totals.revenueCents,
+      totals.successRevenueCents,
+      data.successfulPayments?._sum?.amountCents,
+      totals.successfulPayments?._sum?.amountCents,
+    ),
+    totalRevenueCents: firstNumber(
+      data.totalRevenueCents,
+      totals.totalRevenueCents,
+      totals.grossPaymentVolumeCents,
+      totals.revenueGrossCents,
+      data.totalPayments?._sum?.amountCents,
+      totals.totalPayments?._sum?.amountCents,
+    ),
+
+    recentFeedback: firstArray(data.recentFeedback, recent.feedback, data.feedback),
+    recentUsers: firstArray(data.recentUsers, recent.users),
+    recentWorkouts: firstArray(data.recentWorkouts, recent.workouts),
+    recentSubscriptions: firstArray(data.recentSubscriptions, recent.subscriptions),
+  };
 }
 
 function shortDate(value: unknown) {
@@ -104,12 +177,12 @@ export default function AdminPage() {
     try {
       const allowed = await verifyAdmin();
       if (!allowed) return;
-      const data = unwrap(await AdminAPI.getSummary());
+      const data = normalizeSummary(await AdminAPI.getSummary());
       setSummary(data);
-      setFeedback(Array.isArray(data.recentFeedback) ? data.recentFeedback : []);
-      setUsers(Array.isArray(data.recentUsers) ? data.recentUsers : []);
-      setWorkouts(Array.isArray(data.recentWorkouts) ? data.recentWorkouts : []);
-      setSubscriptions(Array.isArray(data.recentSubscriptions) ? data.recentSubscriptions : []);
+      setFeedback(data.recentFeedback);
+      setUsers(data.recentUsers);
+      setWorkouts(data.recentWorkouts);
+      setSubscriptions(data.recentSubscriptions);
     } catch (err) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) setAuthState("denied");
       setError(err instanceof Error ? err.message : "Admin dashboard failed to load.");
@@ -161,16 +234,16 @@ export default function AdminPage() {
   }, [activeTab, feedbackStatus]);
 
   const cards = useMemo(() => {
-    const s = summary || {};
+    const s = normalizeSummary(summary || {});
     return [
-      { label: "Total Users", value: s.totalUsers, hint: `${numberish(s.newUsersToday)} joined today`, Icon: Users },
-      { label: "Verified Users", value: s.verifiedUsers, hint: "Email verified accounts", Icon: ShieldCheck },
-      { label: "Workout Logs", value: s.totalWorkoutLogs, hint: `${numberish(s.workoutsToday)} today`, Icon: Dumbbell },
-      { label: "Active Programs", value: s.activePrograms, hint: `${numberish(s.totalPrograms)} total`, Icon: BarChart3 },
-      { label: "Active Enrollments", value: s.activeEnrollments, hint: `${numberish(s.totalEnrollments)} total`, Icon: Activity },
-      { label: "New Feedback", value: s.feedbackNew, hint: `${numberish(s.feedbackTotal)} total`, Icon: MessageSquare },
-      { label: "Successful Revenue", value: money(s.successfulRevenueCents ?? s.successfulPayments?._sum?.amountCents), hint: "From completed payments", Icon: CreditCard },
-      { label: "Total Revenue", value: money(s.totalRevenueCents ?? s.totalPayments?._sum?.amountCents), hint: "All payment records", Icon: CreditCard },
+      { label: "Total Users", value: firstNumber(s.totalUsers), hint: `${firstNumber(s.newUsersToday)} joined today`, Icon: Users },
+      { label: "Verified Users", value: firstNumber(s.verifiedUsers), hint: "Email verified accounts", Icon: ShieldCheck },
+      { label: "Workout Logs", value: firstNumber(s.totalWorkoutLogs), hint: `${firstNumber(s.workoutsToday)} today`, Icon: Dumbbell },
+      { label: "Active Programs", value: firstNumber(s.activePrograms), hint: `${firstNumber(s.totalPrograms)} total`, Icon: BarChart3 },
+      { label: "Active Enrollments", value: firstNumber(s.activeEnrollments), hint: `${firstNumber(s.totalEnrollments)} total`, Icon: Activity },
+      { label: "New Feedback", value: firstNumber(s.feedbackNew), hint: `${firstNumber(s.feedbackTotal)} total`, Icon: MessageSquare },
+      { label: "Successful Revenue", value: money(s.successfulRevenueCents), hint: "From completed payments", Icon: CreditCard },
+      { label: "Total Revenue", value: money(s.totalRevenueCents), hint: "All payment records", Icon: CreditCard },
     ];
   }, [summary]);
 
