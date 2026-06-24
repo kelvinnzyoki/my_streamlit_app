@@ -1139,11 +1139,99 @@ export async function requireAuth() {
 /* ─────────────────────────────────────────────────────────────
    Admin + Feedback frontend API
    - /admin is protected server-side by authenticate + requireAdmin.
-   - feedback is authenticated user feedback.
+   - Feedback is authenticated user feedback.
+   - Admin summary is normalised here so existing Admin UI cards do not show 0
+     when the backend returns nested { data: { totals, recent } } shapes.
 ───────────────────────────────────────────────────────────── */
 
 export type FeedbackType = 'bug' | 'suggestion' | 'complaint' | 'praise';
 export type FeedbackStatus = 'NEW' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED';
+
+type AdminListParams = { page?: number; limit?: number; q?: string; status?: string };
+
+function adminUnwrap(payload: any) {
+  return payload?.data && typeof payload.data === 'object' ? payload.data : payload || {};
+}
+
+function adminNumber(value: unknown): number {
+  if (typeof value === 'string') {
+    const cleaned = value.replace(/[^0-9.-]/g, '');
+    const parsed = Number(cleaned || 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function adminFirstNumber(...values: unknown[]): number {
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') continue;
+    const parsed = adminNumber(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
+function adminFirstArray<T = any>(...values: unknown[]): T[] {
+  for (const value of values) {
+    if (Array.isArray(value)) return value as T[];
+  }
+  return [];
+}
+
+export function normalizeAdminSummary(payload: any) {
+  const data = adminUnwrap(payload);
+  const totals = data?.totals || data?.summary || data?.stats || {};
+  const recent = data?.recent || {};
+  const subscriptions = data?.subscriptions || {};
+
+  const normalised = {
+    ...data,
+    totals,
+    recent,
+    subscriptions,
+
+    totalUsers: adminFirstNumber(data.totalUsers, totals.totalUsers, totals.users, data.usersTotal),
+    newUsersToday: adminFirstNumber(data.newUsersToday, totals.newUsersToday, totals.usersToday),
+    verifiedUsers: adminFirstNumber(data.verifiedUsers, totals.verifiedUsers, totals.emailVerifiedUsers),
+
+    totalWorkoutLogs: adminFirstNumber(data.totalWorkoutLogs, totals.totalWorkoutLogs, totals.workoutLogs, totals.workouts),
+    workoutsToday: adminFirstNumber(data.workoutsToday, totals.workoutsToday, totals.workoutLogsToday),
+
+    totalPrograms: adminFirstNumber(data.totalPrograms, totals.totalPrograms, totals.programs),
+    activePrograms: adminFirstNumber(data.activePrograms, totals.activePrograms),
+
+    totalEnrollments: adminFirstNumber(data.totalEnrollments, totals.totalEnrollments, totals.enrollments),
+    activeEnrollments: adminFirstNumber(data.activeEnrollments, totals.activeEnrollments),
+
+    feedbackNew: adminFirstNumber(data.feedbackNew, totals.feedbackNew, totals.newFeedback),
+    feedbackTotal: adminFirstNumber(data.feedbackTotal, totals.feedbackTotal, totals.feedback),
+
+    successfulRevenueCents: adminFirstNumber(
+      data.successfulRevenueCents,
+      totals.successfulRevenueCents,
+      totals.revenueCents,
+      totals.successRevenueCents,
+      data.successfulPayments?._sum?.amountCents,
+      totals.successfulPayments?._sum?.amountCents,
+    ),
+    totalRevenueCents: adminFirstNumber(
+      data.totalRevenueCents,
+      totals.totalRevenueCents,
+      totals.grossPaymentVolumeCents,
+      totals.revenueGrossCents,
+      data.totalPayments?._sum?.amountCents,
+      totals.totalPayments?._sum?.amountCents,
+    ),
+
+    recentFeedback: adminFirstArray(data.recentFeedback, recent.feedback, data.feedback),
+    recentUsers: adminFirstArray(data.recentUsers, recent.users),
+    recentWorkouts: adminFirstArray(data.recentWorkouts, recent.workouts),
+    recentSubscriptions: adminFirstArray(data.recentSubscriptions, recent.subscriptions),
+  };
+
+  return normalised;
+}
 
 export const FeedbackAPI = {
   create(body: { type?: FeedbackType; message: string; pageUrl?: string | null }) {
@@ -1161,11 +1249,21 @@ export const FeedbackAPI = {
 export const submitFeedback = FeedbackAPI.create;
 
 export const AdminAPI = {
-  getSummary() {
-    return apiRequest<any>('/admin/summary');
+  async getSummary() {
+    const payload = await apiRequest<any>('/admin/summary');
+    return normalizeAdminSummary(payload);
   },
 
-  getUsers(params: { page?: number; limit?: number; q?: string } = {}) {
+  // Backward-compatible names for admin pages that use older function names.
+  async getOverview() {
+    return this.getSummary();
+  },
+
+  async getDashboardSummary() {
+    return this.getSummary();
+  },
+
+  getUsers(params: AdminListParams = {}) {
     const query = toQueryString({
       page: params.page || 1,
       limit: params.limit || 20,
@@ -1174,7 +1272,7 @@ export const AdminAPI = {
     return apiRequest<any>(`/admin/users${query}`);
   },
 
-  getSubscriptions(params: { page?: number; limit?: number; status?: string } = {}) {
+  getSubscriptions(params: AdminListParams = {}) {
     const query = toQueryString({
       page: params.page || 1,
       limit: params.limit || 20,
@@ -1183,7 +1281,7 @@ export const AdminAPI = {
     return apiRequest<any>(`/admin/subscriptions${query}`);
   },
 
-  getWorkouts(params: { page?: number; limit?: number } = {}) {
+  getWorkouts(params: AdminListParams = {}) {
     const query = toQueryString({
       page: params.page || 1,
       limit: params.limit || 20,
@@ -1191,7 +1289,7 @@ export const AdminAPI = {
     return apiRequest<any>(`/admin/workouts${query}`);
   },
 
-  getPrograms(params: { page?: number; limit?: number; q?: string } = {}) {
+  getPrograms(params: AdminListParams = {}) {
     const query = toQueryString({
       page: params.page || 1,
       limit: params.limit || 20,
@@ -1200,7 +1298,7 @@ export const AdminAPI = {
     return apiRequest<any>(`/admin/programs${query}`);
   },
 
-  getEnrollments(params: { page?: number; limit?: number } = {}) {
+  getEnrollments(params: AdminListParams = {}) {
     const query = toQueryString({
       page: params.page || 1,
       limit: params.limit || 20,
@@ -1228,5 +1326,3 @@ export const AdminAPI = {
     return apiRequest<any>('/admin/activity');
   },
 };
-
-
