@@ -542,3 +542,283 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ── Mobile-first admin hardening ───────────────────────── */
+.page,
+.tableShell,
+.panel,
+.list,
+.row,
+.feedbackRow,
+.timelineItem,
+.drawer,
+.drawerHead {
+  min-width: 0;
+}
+
+.hero,
+.row,
+.feedbackTop,
+.tableToolbar,
+.drawerHead {
+  max-width: 100%;
+}
+
+.tabs {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: .25rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.tabs button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.tableShell,
+.panel {
+  overflow: hidden;
+}
+
+.row > div:first-child,
+.feedbackTop > div:first-child,
+.timelineItem > div:last-child,
+.drawerHead > div:first-child {
+  min-width: 0;
+}
+
+.row strong,
+.row small,
+.feedbackRow strong,
+.feedbackRow small,
+.timelineItem strong,
+.timelineItem small,
+.pageUrl,
+.drawerHead h2,
+.drawerHead small {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.iconButton,
+.closeButton,
+.statusActions button,
+.tabs button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.drawerBackdrop {
+  overscroll-behavior: contain;
+}
+
+.drawer {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  max-width: 100vw;
+}
+
+@media (max-width: 900px) {
+  .page {
+    gap: 1rem;
+  }
+
+  .hero {
+    align-items: stretch;
+    flex-direction: column;
+    border-radius: 22px;
+  }
+
+  .hero button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tableShell {
+    border-radius: 20px;
+  }
+
+  .drawer {
+    width: min(680px, 96vw);
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: .85rem;
+  }
+
+  .hero {
+    padding: 1rem;
+    border-radius: 18px;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.75rem, 12vw, 2.65rem);
+  }
+
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricCard {
+    min-height: 128px;
+    border-radius: 18px;
+  }
+
+  .tableShell {
+    padding: .8rem;
+    border-radius: 18px;
+  }
+
+  .tableToolbar,
+  .searchBox,
+  .row,
+  .feedbackTop {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .searchBox {
+    display: grid;
+    width: 100%;
+  }
+
+  .searchBox input,
+  .searchBox button,
+  .tableToolbar select {
+    width: 100%;
+  }
+
+  .rowMeta {
+    width: 100%;
+    justify-content: flex-start;
+    gap: .45rem;
+  }
+
+  .rowMeta > *,
+  .statusActions button,
+  .iconButton {
+    max-width: 100%;
+  }
+
+  .iconButton {
+    width: 100%;
+    justify-content: center;
+    padding: .68rem .8rem;
+  }
+
+  .statusActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .timelineItem {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: .65rem;
+    padding: .8rem;
+    border-radius: 16px;
+  }
+
+  .timelineIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+  }
+
+  .drawerBackdrop {
+    align-items: stretch;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .drawer {
+    width: 100vw;
+    height: 100dvh;
+    border-left: 0;
+    border-radius: 0;
+    padding: .85rem;
+  }
+
+  .drawerHead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    align-items: stretch;
+    border-radius: 18px;
+    background: var(--surface-deep, #07060c);
+  }
+
+  .closeButton {
+    min-width: 44px;
+    min-height: 44px;
+    align-self: flex-start;
+  }
+
+  .auditGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: .55rem;
+  }
+
+  .auditGrid span {
+    padding: .7rem;
+    border-radius: 14px;
+  }
+
+  .auditGrid strong {
+    font-size: 1.1rem;
+  }
+
+  .panelHead {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .tabs button {
+    padding: .58rem .78rem;
+    font-size: .66rem;
+  }
+
+  .row,
+  .feedbackRow,
+  .timelineItem {
+    padding: .75rem;
+  }
+
+  .rowMeta {
+    font-size: .72rem;
+  }
+
+  .statusPill,
+  .ok {
+    font-size: .62rem;
+  }
+
+  .timelineItem {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .drawer {
+    padding: .7rem;
+  }
+
+  .drawerHead {
+    gap: .7rem;
+    padding: .85rem;
+  }
+
+  .auditGrid {
+    grid-template-columns: 1fr;
+  }
+}
