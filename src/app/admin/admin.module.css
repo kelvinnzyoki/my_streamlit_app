@@ -822,3 +822,533 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ─────────────────────────────────────────────────────────
+   Admin full responsive hardening: page + every drawer/modal
+   This block intentionally overrides global premium-card rules.
+───────────────────────────────────────────────────────── */
+
+.page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.page *,
+.drawerBackdrop *,
+.drawer * {
+  box-sizing: border-box;
+}
+
+.hero,
+.tableShell,
+.panel,
+.metricCard,
+.row,
+.feedbackRow,
+.timelineItem,
+.drawer,
+.drawerHead,
+.drawerSection,
+.auditGrid span {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Prevent global .premium-card/.card rules from clipping modal content. */
+.drawer :global(.premium-card),
+.drawer .panel,
+.drawerSection {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  clip-path: none !important;
+}
+
+/* Main admin tables/cards */
+.tableShell {
+  overflow-x: clip;
+}
+
+.list {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.row {
+  width: 100%;
+}
+
+.row > div:first-child,
+.feedbackTop > div:first-child,
+.timelineItem > div:last-child,
+.drawerHead > div:first-child,
+.drawerUserTitle {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.row strong,
+.row small,
+.feedbackRow strong,
+.feedbackRow small,
+.timelineItem strong,
+.timelineItem p,
+.timelineItem small,
+.pageUrl,
+.drawerHead h2,
+.drawerHead small,
+.drawerSectionHead h3 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Drawer / modal shell */
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(8px);
+  overscroll-behavior: contain;
+  overflow: hidden;
+}
+
+.drawer {
+  width: min(820px, 100vw);
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: clamp(.85rem, 2vw, 1.4rem);
+  border-left: 1px solid var(--b1);
+  background:
+    radial-gradient(circle at 15% 5%, rgba(212,175,55,.13), transparent 34%),
+    var(--surface-deep, #07060c);
+  box-shadow: -26px 0 70px rgba(0,0,0,.45);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.drawerContent {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.drawerHead {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .9rem;
+  width: 100%;
+  border: 1px solid var(--b1);
+  border-radius: 22px;
+  padding: 1rem;
+  background: var(--white-04);
+}
+
+.drawerUserTitle {
+  display: grid;
+  gap: .15rem;
+}
+
+.drawerUserTitle h2 {
+  margin: .15rem 0;
+  line-height: 1.08;
+  font-size: clamp(1.65rem, 4vw, 2.65rem);
+}
+
+.closeButton {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Counts grid inside modal */
+.auditGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .7rem;
+  width: 100%;
+}
+
+.auditGrid span {
+  display: grid;
+  gap: .2rem;
+  min-height: 92px;
+  align-content: center;
+  border: 1px solid var(--b1);
+  border-radius: 18px;
+  padding: .85rem;
+  background: var(--white-04);
+  color: var(--t2);
+}
+
+.auditGrid strong {
+  display: block;
+  color: var(--Au-hi);
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(1.25rem, 4vw, 1.7rem);
+  line-height: 1;
+}
+
+/* Drawer sections replace premium-card for reliable mobile sizing */
+.drawerSection {
+  display: grid;
+  gap: .85rem;
+  width: 100%;
+  border: 1px solid var(--b1);
+  border-radius: 22px;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(212,175,55,.08), transparent 32%),
+    var(--white-03);
+}
+
+.drawerSectionHead {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  min-height: 32px;
+}
+
+.drawerSectionHead svg {
+  flex: 0 0 auto;
+  color: var(--Au);
+}
+
+.drawerSectionHead h3 {
+  margin: 0;
+  color: var(--t1);
+  font-size: clamp(1.15rem, 4vw, 1.55rem);
+  line-height: 1.15;
+}
+
+.drawerSectionBody {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Activity timeline */
+.timeline {
+  display: grid;
+  gap: .75rem;
+  width: 100%;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: .75rem;
+  align-items: flex-start;
+  width: 100%;
+  min-height: auto !important;
+  height: auto !important;
+  border: 1px solid var(--b1);
+  border-radius: 18px;
+  background: var(--white-03);
+  padding: .9rem;
+  overflow: visible !important;
+}
+
+.timelineIcon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--Au-10);
+  color: var(--Au-hi);
+  border: 1px solid var(--Au-25);
+}
+
+.timelineItem strong,
+.timelineItem p,
+.timelineItem small {
+  display: block;
+}
+
+.timelineItem strong {
+  color: var(--t1);
+  line-height: 1.25;
+}
+
+.timelineItem p {
+  margin: .25rem 0;
+  color: var(--t2);
+  line-height: 1.55;
+}
+
+/* Controls */
+.tabs {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: .3rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.iconButton,
+.closeButton,
+.statusActions button,
+.tabs button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 1181px) {
+  .drawer {
+    width: min(860px, calc(100vw - 272px));
+  }
+}
+
+@media (max-width: 1180px) {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .drawer {
+    width: min(760px, 96vw);
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    align-items: stretch;
+    flex-direction: column;
+    border-radius: 22px;
+  }
+
+  .hero button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .drawer {
+    width: 100vw;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    gap: 1rem;
+  }
+
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tableShell {
+    padding: .85rem;
+    border-radius: 18px;
+  }
+
+  .tableToolbar,
+  .searchBox,
+  .row,
+  .feedbackTop {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .searchBox {
+    display: grid;
+    width: 100%;
+  }
+
+  .searchBox input,
+  .searchBox button,
+  .tableToolbar select {
+    width: 100%;
+  }
+
+  .rowMeta {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .iconButton {
+    width: 100%;
+    justify-content: center;
+    min-height: 42px;
+  }
+
+  .statusActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .drawer {
+    padding: .85rem;
+  }
+
+  .drawerHead {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 90% 10%, rgba(212,175,55,.10), transparent 28%),
+      var(--surface-deep, #07060c);
+  }
+
+  .auditGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+  }
+
+  .auditGrid span {
+    min-height: 82px;
+    border-radius: 16px;
+    padding: .75rem;
+  }
+
+  .drawerSection {
+    border-radius: 18px;
+    padding: .85rem;
+  }
+
+  .timelineItem {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: .65rem;
+    padding: .8rem;
+    border-radius: 16px;
+  }
+
+  .timelineIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 1rem;
+    border-radius: 18px;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.75rem, 12vw, 2.6rem);
+  }
+
+  .metricCard {
+    min-height: 124px;
+    border-radius: 18px;
+  }
+
+  .drawer {
+    padding: .7rem;
+  }
+
+  .drawerHead {
+    gap: .7rem;
+    padding: .85rem;
+  }
+
+  .drawerUserTitle h2 {
+    font-size: clamp(1.55rem, 10vw, 2.2rem);
+  }
+
+  .closeButton {
+    min-width: 42px;
+    min-height: 42px;
+    padding: .45rem;
+  }
+
+  .auditGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .auditGrid span {
+    min-height: 76px;
+  }
+
+  .drawerSection {
+    padding: .78rem;
+    border-radius: 16px;
+  }
+
+  .drawerSectionHead {
+    align-items: flex-start;
+  }
+
+  .timelineItem {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .row,
+  .feedbackRow {
+    padding: .75rem;
+    border-radius: 16px;
+  }
+
+  .tabs button {
+    padding: .58rem .78rem;
+    font-size: .66rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .drawer {
+    padding: .6rem;
+  }
+
+  .drawerHead,
+  .drawerSection,
+  .row,
+  .feedbackRow,
+  .timelineItem {
+    padding: .65rem;
+  }
+
+  .drawerSectionHead h3 {
+    font-size: 1.05rem;
+  }
+}
+
+/* Light mode support for drawer sections */
+:global(html.light-mode) .drawerSection,
+:global(html[data-theme='light']) .drawerSection,
+:global(html.light-mode) .timelineItem,
+:global(html[data-theme='light']) .timelineItem,
+:global(html.light-mode) .drawerHead,
+:global(html[data-theme='light']) .drawerHead,
+:global(html.light-mode) .auditGrid span,
+:global(html[data-theme='light']) .auditGrid span {
+  background: #fff !important;
+  border-color: #e5e7eb !important;
+}
+
+:global(html.light-mode) .drawer,
+:global(html[data-theme='light']) .drawer {
+  background: #f8fafc !important;
+}
+
+:global(html.light-mode) .drawerSectionHead h3,
+:global(html[data-theme='light']) .drawerSectionHead h3,
+:global(html.light-mode) .timelineItem strong,
+:global(html[data-theme='light']) .timelineItem strong {
+  color: #111827 !important;
+}

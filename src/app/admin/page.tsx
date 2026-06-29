@@ -393,7 +393,71 @@ function ActivityList({ items }: { items: any[] }) {
   return <div className={styles.timeline}>{items.map((item, index) => <article key={`${item.type}-${item.createdAt}-${index}`} className={styles.timelineItem}><div className={styles.timelineIcon}><ActivityIcon type={item.type} /></div><div><strong>{item.label || item.type || "Activity"}</strong><p>{item.message || "No details"}</p>{item.meta?.assistant && <small className={styles.pageUrl}>Coach reply: {item.meta.assistant}</small>}<small>{dateTime(item.createdAt)}</small></div></article>)}</div>;
 }
 
+function DrawerSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className={styles.drawerSection}>
+      <div className={styles.drawerSectionHead}>
+        {icon}
+        <h3>{title}</h3>
+      </div>
+      <div className={styles.drawerSectionBody}>{children}</div>
+    </section>
+  );
+}
+
 function UserActivityDrawer({ user, data, loading, onClose }: { user: any; data: any; loading: boolean; onClose: () => void }) {
   const counts = data?.user?._count || user?._count || {};
-  return <div className={styles.drawerBackdrop} role="dialog" aria-modal="true"><aside className={styles.drawer}><div className={styles.drawerHead}><div><p className="eyebrow">User activity audit</p><h2>{data?.user?.name || user?.name || "Unnamed user"}</h2><small>{data?.user?.email || user?.email}</small></div><button type="button" className={styles.closeButton} onClick={onClose}><X size={18} /></button></div>{loading ? <div className={styles.centerMini}><Loader2 className={styles.spin} size={22} /> Loading full user activity…</div> : <><div className={styles.auditGrid}><span><strong>{counts.workoutLogs || 0}</strong> workouts</span><span><strong>{counts.enrollments || 0}</strong> programs</span><span><strong>{counts.feedback || 0}</strong> feedback</span><span><strong>{counts.notifications || 0}</strong> notices</span><span><strong>{data?.metrics?.length || 0}</strong> metrics</span><span><strong>{data?.coachHistory?.length || 0}</strong> AI chats</span></div><Panel title="Timeline" icon={<Activity size={18} />}><ActivityList items={data?.activity || []} /></Panel><Panel title="Workout logs" icon={<Dumbbell size={18} />}><WorkoutList items={data?.workoutLogs || []} /></Panel><Panel title="Programs" icon={<BarChart3 size={18} />}><EnrollmentList items={data?.enrollments || []} /></Panel><Panel title="Feedback" icon={<MessageSquare size={18} />}><FeedbackList items={data?.feedback || []} onStatus={() => {}} /></Panel></>}</aside></div>;
+  const name = data?.user?.name || user?.name || "Unnamed user";
+  const email = data?.user?.email || user?.email || "No email available";
+
+  return (
+    <div className={styles.drawerBackdrop} role="dialog" aria-modal="true" aria-labelledby="user-activity-title">
+      <aside className={styles.drawer}>
+        <div className={styles.drawerHead}>
+          <div className={styles.drawerUserTitle}>
+            <p className="eyebrow">User activity audit</p>
+            <h2 id="user-activity-title">{name}</h2>
+            <small>{email}</small>
+          </div>
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close user activity audit">
+            <X size={18} />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className={styles.centerMini}>
+            <Loader2 className={styles.spin} size={22} />
+            Loading full user activity…
+          </div>
+        ) : (
+          <div className={styles.drawerContent}>
+            <div className={styles.auditGrid}>
+              <span><strong>{counts.workoutLogs || 0}</strong> workouts</span>
+              <span><strong>{counts.enrollments || 0}</strong> programs</span>
+              <span><strong>{counts.feedback || 0}</strong> feedback</span>
+              <span><strong>{counts.notifications || 0}</strong> notices</span>
+              <span><strong>{data?.metrics?.length || 0}</strong> metrics</span>
+              <span><strong>{data?.coachHistory?.length || 0}</strong> AI chats</span>
+            </div>
+
+            <DrawerSection title="Timeline" icon={<Activity size={18} />}>
+              <ActivityList items={data?.activity || []} />
+            </DrawerSection>
+
+            <DrawerSection title="Workout logs" icon={<Dumbbell size={18} />}>
+              <WorkoutList items={data?.workoutLogs || []} />
+            </DrawerSection>
+
+            <DrawerSection title="Programs" icon={<BarChart3 size={18} />}>
+              <EnrollmentList items={data?.enrollments || []} />
+            </DrawerSection>
+
+            <DrawerSection title="Feedback" icon={<MessageSquare size={18} />}>
+              <FeedbackList items={data?.feedback || []} onStatus={() => {}} />
+            </DrawerSection>
+          </div>
+        )}
+      </aside>
+    </div>
+  );
 }
