@@ -20,8 +20,8 @@ export default function ContactPage() {
           <div className="grid grid-2" style={{ alignItems: 'start' }}>
             <article className="premium-card">
               <h2>Support details</h2>
-              <div className="mini-link"><strong>Email</strong><span>tam&amp;cc@cctamcc.site</span></div>
-              <div className="mini-link"><strong>Phone</strong><span>+254748500065</span></div>
+              <div className="mini-link"><strong>Email</strong><span>support@cctamcc.site</span></div>
+              <div className="mini-link"><strong>Phone</strong><span>+254789574634</span></div>
               <div className="mini-link"><strong>Location</strong><span>Nairobi, Kenya</span></div>
               <p className="muted">For faster help, include your account email, the page affected, and a short description of the issue.</p>
             </article>
